@@ -1,0 +1,1712 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wizard de Factibilidad Financiera — Comfamiliar Risaralda</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+  :root{
+    --tinto:#1B3A5F;
+    --tinto-light:#2F5C8C;
+    --achiote:#F4B731;
+    --achiote-light:#FBDD8B;
+    --pergamino:#F4F6F9;
+    --pergamino-2:#E1E6ED;
+    --cafetal:#6FA8D8;
+    --oro:#FFD166;
+    --achiote-dark:#B8860B;
+    --carbon:#1F2933;
+    --rojo:#C0392B;
+    --verde-ok:#2E8B57;
+    --gris:#7C8896;
+    --paper:#FFFFFF;
+    --shadow: 0 4px 16px rgba(31,41,51,0.08);
+    --shadow-lg: 0 12px 32px rgba(31,41,51,0.14);
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Work Sans', sans-serif;
+    background: var(--pergamino);
+    color: var(--carbon);
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,h4{
+    font-family:'Fraunces', serif;
+    color: var(--tinto);
+    margin:0;
+    letter-spacing:-0.01em;
+  }
+  .mono{ font-family:'IBM Plex Mono', monospace; }
+
+  /* ===== APP SHELL ===== */
+  .app-shell{
+    display:grid;
+    grid-template-columns: 260px 1fr;
+    min-height:100vh;
+  }
+  @media (max-width: 880px){
+    .app-shell{ grid-template-columns: 1fr; }
+    .sidebar{ display:none; }
+    .sidebar.open{ display:block; position:fixed; z-index:50; inset:0; width:100%; }
+  }
+
+  /* ===== SIDEBAR / PATH NAV ===== */
+  .sidebar{
+    background: var(--tinto);
+    color: var(--pergamino);
+    padding: 28px 22px;
+    position: sticky;
+    top:0;
+    height:100vh;
+    overflow-y:auto;
+  }
+  .brand{
+    margin-bottom: 6px;
+  }
+  .brand .eyebrow{
+    font-size:11px;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    color: var(--achiote-light);
+    font-weight:600;
+  }
+  .brand h1{
+    color:#fff;
+    font-size:22px;
+    line-height:1.2;
+    margin-top:4px;
+  }
+  .brand .sub{
+    font-size:12.5px;
+    color: rgba(247,242,233,0.65);
+    margin-top:8px;
+    line-height:1.5;
+  }
+  .path-wrap{
+    margin-top: 32px;
+    position:relative;
+  }
+  .path-svg{
+    position:absolute;
+    left: 17px;
+    top: 6px;
+    width: 4px;
+    height: calc(100% - 12px);
+  }
+  .path-line-bg{ fill:none; stroke: rgba(247,242,233,0.15); stroke-width:3; }
+  .path-line-fg{ fill:none; stroke: var(--achiote); stroke-width:3; transition: stroke-dasharray .5s ease; }
+  .stations{ position:relative; z-index:2; list-style:none; margin:0; padding:0; }
+  .station{
+    display:flex; align-items:flex-start; gap:14px;
+    padding: 10px 8px;
+    border-radius: 10px;
+    cursor:pointer;
+    transition: background .2s ease;
+    margin-bottom:2px;
+  }
+  .station:hover{ background: rgba(255,255,255,0.06); }
+  .station .dot{
+    flex:0 0 auto;
+    width:36px; height:36px;
+    border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:13px; font-weight:600;
+    border: 2px solid rgba(247,242,233,0.3);
+    color: rgba(247,242,233,0.55);
+    background: var(--tinto);
+    transition: all .25s ease;
+  }
+  .station.done .dot{
+    background: var(--achiote);
+    border-color: var(--achiote);
+    color:#fff;
+  }
+  .station.active .dot{
+    background: var(--oro);
+    border-color: var(--oro);
+    color: var(--tinto);
+    transform: scale(1.12);
+    box-shadow: 0 0 0 5px rgba(230,184,92,0.18);
+  }
+  .station .label{ padding-top:7px; }
+  .station .label .t{
+    font-size:13.5px; font-weight:600;
+    color: rgba(247,242,233,0.55);
+  }
+  .station.active .label .t, .station.done .label .t{ color:#fff; }
+  .station .label .d{
+    font-size:11.5px;
+    color: rgba(247,242,233,0.4);
+    margin-top:1px;
+  }
+
+  /* ===== MAIN ===== */
+  .main{ padding: 36px 44px 80px; max-width: 980px; }
+  @media (max-width: 880px){ .main{ padding: 22px 18px 60px; } }
+
+  .topbar{
+    display:flex; justify-content:space-between; align-items:flex-start;
+    margin-bottom: 6px; gap:16px; flex-wrap:wrap;
+  }
+  .topbar .menu-btn{ display:none; }
+  @media (max-width: 880px){
+    .topbar .menu-btn{
+      display:inline-flex; align-items:center; gap:8px;
+      background: var(--tinto); color:#fff; border:none;
+      padding:8px 14px; border-radius:8px; font-size:13px; font-weight:600;
+      cursor:pointer;
+    }
+  }
+  .phase-eyebrow{
+    font-size:12px; letter-spacing:.14em; text-transform:uppercase;
+    color: var(--achiote-dark); font-weight:700;
+  }
+  .phase-title{ font-size:32px; margin-top:6px; }
+  .phase-intro{
+    font-size:15px; color:#4A5568; line-height:1.6; margin-top:10px; max-width:640px;
+  }
+
+  /* ===== CARDS / FORMS ===== */
+  .card{
+    background: var(--paper);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 26px 28px;
+    margin-top: 26px;
+  }
+  .card h3{ font-size:18px; margin-bottom:4px; }
+  .card .card-sub{ font-size:13px; color:#6B7787; margin-bottom:18px; }
+
+  .field-grid{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px 24px;
+  }
+  @media (max-width:640px){ .field-grid{ grid-template-columns: 1fr; } }
+  .field{ display:flex; flex-direction:column; }
+  .field label{
+    font-size:13.5px; font-weight:600; color: var(--tinto);
+    margin-bottom:5px; display:flex; align-items:center; gap:6px;
+  }
+  .field .help{
+    font-size:12px; color:#8A95A6; margin-top:5px; line-height:1.5;
+  }
+  .help-icon{
+    width:16px; height:16px; border-radius:50%;
+    background: var(--pergamino-2); color: var(--gris);
+    display:inline-flex; align-items:center; justify-content:center;
+    font-size:10.5px; font-weight:700; cursor:help; flex:0 0 auto;
+  }
+  input[type=text], input[type=number], select{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:14px;
+    padding:10px 12px;
+    border: 1.5px solid #D7DEE8;
+    border-radius:9px;
+    background: var(--pergamino);
+    color: var(--carbon);
+    width:100%;
+    transition: border-color .15s ease, background .15s ease;
+  }
+  input[type=text]{ font-family:'Work Sans', sans-serif; }
+  select{ font-family:'Work Sans', sans-serif; }
+  input:focus, select:focus{
+    outline:none; border-color: var(--achiote); background:#fff;
+  }
+  .unit-suffix{ font-size:11px; color:#8A95A6; margin-top:4px; }
+
+  .scenario-tabs{
+    display:flex; gap:8px; margin-bottom:18px; flex-wrap:wrap;
+  }
+  .scenario-tab{
+    padding:7px 16px; border-radius:999px; font-size:13px; font-weight:600;
+    cursor:pointer; border:1.5px solid #D7DEE8; background:#fff; color:#6B7787;
+    transition: all .15s ease;
+  }
+  .scenario-tab.active{
+    background: var(--tinto); border-color: var(--tinto); color:#fff;
+  }
+  .scenario-tab[data-esc="mixto"].active{ background: var(--achiote); border-color: var(--achiote); color: var(--tinto); }
+  .scenario-tab[data-esc="terc"].active{ background: var(--oro); border-color: var(--oro); color: var(--tinto); }
+
+  .scenario-panel{ display:none; }
+  .scenario-panel.show{ display:block; }
+
+  .preview-box{
+    margin-top:20px;
+    background: var(--pergamino);
+    border: 1.5px dashed #C9D3E0;
+    border-radius: 10px;
+    padding: 14px 18px;
+    font-size:13.5px;
+    display:flex; flex-wrap:wrap; gap:24px;
+  }
+  .preview-box .pv-item .k{ font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:#8A95A6; }
+  .preview-box .pv-item .v{ font-family:'IBM Plex Mono',monospace; font-size:16px; font-weight:600; color: var(--tinto); margin-top:2px; }
+
+  /* ===== TABLES (CAPEX/OPEX) ===== */
+  table.line-table{ width:100%; border-collapse:collapse; font-size:13.5px; }
+  table.line-table th{
+    text-align:left; font-size:11.5px; text-transform:uppercase; letter-spacing:.06em;
+    color:#8A95A6; font-weight:600; padding:8px 8px; border-bottom:2px solid var(--pergamino-2);
+  }
+  table.line-table td{ padding:6px 8px; border-bottom:1px solid var(--pergamino-2); vertical-align:middle; }
+  table.line-table input{ padding:7px 9px; font-size:13px; }
+  table.line-table tr.total-row td{
+    font-weight:700; color: var(--tinto); border-top:2px solid var(--tinto); border-bottom:none;
+    padding-top:10px;
+  }
+  .row-remove{
+    background:none; border:none; color: var(--rojo); cursor:pointer; font-size:16px;
+    width:28px; height:28px; border-radius:6px; display:flex; align-items:center; justify-content:center;
+  }
+  .row-remove:hover{ background: rgba(192,88,76,0.1); }
+  .add-row-btn{
+    margin-top:14px; display:inline-flex; align-items:center; gap:8px;
+    background: none; border:1.5px dashed var(--cafetal); color: var(--tinto);
+    padding:9px 16px; border-radius:9px; font-size:13px; font-weight:600; cursor:pointer;
+    font-family:'Work Sans',sans-serif;
+  }
+  .add-row-btn:hover{ background: rgba(111,168,216,0.12); }
+  .file-chip{
+    display:inline-flex; align-items:center; gap:4px; font-size:11px; color: var(--tinto-light);
+    border:1px dashed var(--cafetal); border-radius:6px; padding:3px 8px; cursor:pointer;
+    max-width:170px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+  .file-chip:hover{ background: rgba(111,168,216,0.12); }
+  .ref-cell{ display:flex; flex-direction:column; gap:6px; min-width:160px; }
+  .ref-cell input[type=text]{ font-size:12px; padding:7px 8px; }
+
+  /* ===== NAV BUTTONS ===== */
+  .wizard-nav{
+    display:flex; justify-content:space-between; margin-top:32px; gap:12px;
+  }
+  .btn{
+    font-family:'Work Sans',sans-serif; font-weight:600; font-size:14px;
+    padding:12px 26px; border-radius:10px; cursor:pointer; border:none;
+    transition: transform .12s ease, box-shadow .12s ease;
+  }
+  .btn:active{ transform: translateY(1px); }
+  .btn-primary{ background: var(--achiote); color: var(--tinto); }
+  .btn-primary:hover{ box-shadow: var(--shadow-lg); }
+  .btn-ghost{ background: transparent; color: var(--tinto); border:1.5px solid #D7DEE8; }
+  .btn-ghost:hover{ background: var(--pergamino-2); }
+  .btn-dark{ background: var(--tinto); color:#fff; }
+  .btn-dark:hover{ box-shadow: var(--shadow-lg); }
+  .btn:disabled{ opacity:.35; cursor:not-allowed; }
+
+  /* ===== RESULTS DASHBOARD ===== */
+  .verdict-grid{
+    display:grid; grid-template-columns: repeat(3,1fr); gap:18px; margin-top:24px;
+  }
+  @media (max-width:880px){ .verdict-grid{ grid-template-columns:1fr; } }
+  .verdict-card{
+    border-radius: var(--radius); padding:22px 22px 20px;
+    box-shadow: var(--shadow); position:relative; overflow:hidden;
+    border-top:6px solid var(--cafetal);
+  }
+  .verdict-card.bg-propio{ background:#fff; border-top-color: var(--tinto); }
+  .verdict-card.bg-mixto{ background:#fff; border-top-color: var(--achiote); }
+  .verdict-card.bg-terc{ background:#fff; border-top-color: var(--oro); }
+  .verdict-card .esc-name{ font-size:11px; text-transform:uppercase; letter-spacing:.14em; color:#8A95A6; font-weight:700; }
+  .verdict-card h3{ font-size:20px; margin-top:4px; }
+  .semaforo{
+    display:inline-flex; align-items:center; gap:8px; margin-top:14px;
+    padding:8px 14px; border-radius:999px; font-size:13px; font-weight:700;
+  }
+  .semaforo.ok{ background: rgba(94,140,97,0.14); color: var(--verde-ok); }
+  .semaforo.warn{ background: rgba(230,184,92,0.18); color:#A9791D; }
+  .semaforo.bad{ background: rgba(192,88,76,0.14); color: var(--rojo); }
+  .semaforo .pip{ width:9px; height:9px; border-radius:50%; background:currentColor; }
+  .metric-list{ margin-top:16px; display:flex; flex-direction:column; gap:9px; }
+  .metric-list .m{ display:flex; justify-content:space-between; font-size:13.5px; }
+  .metric-list .m .lab{ color:#6B7787; }
+  .metric-list .m .val{ font-family:'IBM Plex Mono',monospace; font-weight:600; color:var(--carbon); }
+
+  .chart-card{
+    background:#fff; border-radius: var(--radius); box-shadow: var(--shadow);
+    padding:24px 26px; margin-top:24px;
+  }
+  .chart-card h3{ font-size:17px; margin-bottom:4px; }
+  .chart-card .card-sub{ font-size:13px; color:#6B7787; margin-bottom:16px; }
+  .chart-wrap{ position:relative; height:320px; }
+  .chart-wrap.short{ height:240px; }
+
+  .pyg-table{ width:100%; border-collapse:collapse; font-size:13.5px; margin-top:6px; }
+  .pyg-table th{
+    text-align:right; font-size:11px; text-transform:uppercase; letter-spacing:.06em;
+    color:#8A95A6; font-weight:600; padding:8px 10px; border-bottom:2px solid var(--pergamino-2);
+  }
+  .pyg-table th:first-child, .pyg-table td:first-child{ text-align:left; }
+  .pyg-table td{ padding:7px 10px; text-align:right; font-family:'IBM Plex Mono',monospace; border-bottom:1px solid var(--pergamino-2); }
+  .pyg-table tr.sub td{ color:#6B7787; }
+  .pyg-table tr.tot td{ font-weight:700; color:var(--tinto); background: var(--pergamino); }
+  .pyg-table tr.neg td.v{ color: var(--rojo); }
+
+  .social-grid{
+    display:grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); gap:14px; margin-top:18px;
+  }
+  .social-card{
+    background: var(--tinto); color:#fff; border-radius:12px; padding:16px 18px;
+  }
+  .social-card .k{ font-size:11px; text-transform:uppercase; letter-spacing:.1em; color: var(--achiote-light); font-weight:700; }
+  .social-card .v{ font-family:'IBM Plex Mono',monospace; font-size:21px; font-weight:600; margin-top:6px; }
+  .social-card .d{ font-size:11.5px; color: rgba(255,255,255,0.6); margin-top:4px; }
+  .social-card.ok{ background: var(--verde-ok); }
+  .social-card.bad{ background: var(--rojo); }
+  .social-card.warn{ background: var(--oro); color: var(--carbon); }
+  .social-card.warn .k{ color: var(--tinto-light); }
+  .social-card.warn .d{ color: rgba(31,41,51,0.6); }
+
+  .export-bar{ display:flex; gap:12px; margin-top:28px; flex-wrap:wrap; }
+
+  .conclusion-box{
+    background:#fff; border-radius: var(--radius); box-shadow: var(--shadow);
+    padding:22px 24px; margin-top:24px;
+  }
+  .conclusion-box textarea{
+    width:100%; min-height:90px; font-family:'Work Sans',sans-serif; font-size:14px;
+    border:1.5px solid #D7DEE8; border-radius:9px; padding:12px; background: var(--pergamino);
+    resize:vertical;
+  }
+  .conclusion-box textarea:focus{ outline:none; border-color:var(--achiote); background:#fff; }
+
+  .badge-draft{
+    display:inline-block; background: var(--oro); color: var(--tinto); font-weight:700;
+    font-size:11px; letter-spacing:.08em; text-transform:uppercase; padding:5px 12px;
+    border-radius:999px; margin-bottom: 14px;
+  }
+
+  @media print{
+    .sidebar, .wizard-nav, .export-bar, .topbar .menu-btn{ display:none !important; }
+    .app-shell{ grid-template-columns: 1fr; }
+    .card, .chart-card, .verdict-card, .conclusion-box{ box-shadow:none; border:1px solid #ddd; }
+  }
+</style>
+</head>
+<body>
+<div class="app-shell">
+
+  <!-- ============ SIDEBAR / PATH NAV ============ -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="eyebrow">Comfamiliar Risaralda · PMO</div>
+      <h1>Wizard de Factibilidad Financiera</h1>
+      <div class="sub">Recorre las 7 fases para construir tu modelo financiero con escenarios Propio, Mixto y Tercerizado.</div>
+    </div>
+    <div class="path-wrap">
+      <svg class="path-svg" viewBox="0 0 4 100" preserveAspectRatio="none">
+        <line class="path-line-bg" x1="2" y1="0" x2="2" y2="100"/>
+        <line class="path-line-fg" id="pathFg" x1="2" y1="0" x2="2" y2="0"/>
+      </svg>
+      <ul class="stations" id="stations"></ul>
+    </div>
+  </aside>
+
+  <!-- ============ MAIN ============ -->
+  <main class="main">
+    <div class="topbar">
+      <button class="menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">☰ Fases</button>
+    </div>
+    <div id="phaseHeader"></div>
+    <div id="phaseContent"></div>
+    <div class="wizard-nav">
+      <button class="btn btn-ghost" id="btnPrev" onclick="goPhase(currentPhase-1)">← Atrás</button>
+      <button class="btn btn-primary" id="btnNext" onclick="goPhase(currentPhase+1)">Siguiente →</button>
+    </div>
+  </main>
+
+</div>
+
+<script>
+/* ============================================================
+   ESTADO GLOBAL DEL MODELO
+   ============================================================ */
+const state = {
+  proyecto: {
+    nombre: "",
+    codigo: "",
+    responsable: "",
+    tipoServicio: "Servicios sociales / bienestar familiar",
+    horizonte: "5"
+  },
+  control: {
+    wacc: 0.12,
+    tasaRefTipo: "IBR",
+    ibr: 0.1087,
+    spread: 0.04,
+    pctDeudaCapex: 0.50,
+    plazoDeuda: 10,
+    taxRate: 0.05,
+    inflacion: 0.04,
+    wcPct: 0.12,
+    capexRepoPct: 0.01
+  },
+  ingresoMetodo: "unitario",
+  ingresosUnitarios: [
+    {nombre:"Servicio principal / tarifa base", precioP:90000, cantP:17472, precioM:90000, cantM:17472, precioT:90000, cantT:17472, crecimiento:0.04, obs:"", archivo:""},
+    {nombre:"Ingresos complementarios / convenios", precioP:13500, cantP:17472, precioM:13500, cantM:17472, precioT:13500, cantT:17472, crecimiento:0.04, obs:"", archivo:""}
+  ],
+  diasCartera: { propio: 30, mixto: 30, terc: 45 },
+  ingresos: {
+    propio:  { precio1:90000, capacidad:28, unidadesDia:2, diasAno:312, ocupacion1:0.35, crecUsuarios:0.03, crecPrecio:0.04, pctComplementarios:0.15 },
+    mixto:   { precio1:90000, capacidad:28, unidadesDia:2, diasAno:312, ocupacion1:0.45, crecUsuarios:0.03, crecPrecio:0.04, pctComplementarios:0.19 },
+    terc:    { precio1:90000, capacidad:28, unidadesDia:2, diasAno:312, ocupacion1:0.50, crecUsuarios:0.03, crecPrecio:0.04, pctComplementarios:0.14 }
+  },
+  ingresosGlobales: [
+    {nombre:"Ingresos por operación del servicio", p:550000000, m:707000000, t:786000000, crecimiento:0.04, obs:"", archivo:""},
+    {nombre:"Ingresos complementarios / convenios", p:82000000, m:134000000, t:110000000, crecimiento:0.04, obs:"", archivo:""}
+  ],
+  capex: [
+    {nombre:"Activo principal / infraestructura", vida:10, p:740000000, m:500000000, t:0},
+    {nombre:"Adecuación / equipamiento específico", vida:5, p:100000000, m:45000000, t:0},
+    {nombre:"Tecnología (software, sistemas, equipos TI)", vida:3, p:30000000, m:35000000, t:20000000},
+    {nombre:"Infraestructura complementaria", vida:5, p:50000000, m:30000000, t:10000000},
+    {nombre:"Estructuración legal y permisos", vida:1, p:20000000, m:20000000, t:10000000},
+    {nombre:"Capacitación", vida:1, p:5000000, m:5000000, t:0},
+    {nombre:"Marketing de lanzamiento", vida:1, p:10000000, m:10000000, t:20000000},
+    {nombre:"Consultoría externa / implementación", vida:1, p:0, m:100000000, t:100000000},
+    {nombre:"Capital de trabajo inicial", vida:1, p:45000000, m:40000000, t:50000000}
+  ],
+  opex: [
+    {nombre:"Personal operativo", p:264000000, m:204000000, t:48000000},
+    {nombre:"Operador externo / fee fijo anual", p:0, m:120000000, t:360000000},
+    {nombre:"Costos directos de operación", p:70000000, m:52000000, t:0},
+    {nombre:"Administración y back office", p:60000000, m:50000000, t:36000000},
+    {nombre:"Marketing y comercial", p:10000000, m:8500000, t:33000000},
+    {nombre:"Otros costos operativos", p:20000000, m:20000000, t:12000000}
+  ],
+  escenarios: {
+    pctParticipacionMixto: 0.50,
+    pctAsignaciones: 0.10,
+    pctDistribuciones: 0.08,
+    pctFeeTercerizado: 0.20
+  },
+  social: {
+    beneficiarios: 1000,
+    pctCatAB: 0.60,
+    valorSocialUnitario: 50000
+  },
+  conclusiones: ["", "", "", ""]
+};
+
+let currentScenarioTab = { ingresos: 'propio' };
+let currentPhase = 1;
+const TOTAL_PHASES = 7;
+
+const PHASES = [
+  {n:1, t:"Datos del proyecto", d:"Identificación"},
+  {n:2, t:"Parámetros financieros", d:"WACC, tasas, inflación"},
+  {n:3, t:"Inversión inicial (CAPEX)", d:"Activos y vida útil"},
+  {n:4, t:"Costos de operación (OPEX)", d:"Gastos anuales"},
+  {n:5, t:"Ingresos esperados", d:"Demanda y tarifas"},
+  {n:6, t:"Escenarios y aportes", d:"Participación e indicadores sociales"},
+  {n:7, t:"Resultados", d:"Dashboard comparativo"}
+];
+
+/* ============================================================
+   UTILIDADES DE FORMATO
+   ============================================================ */
+function fmtCOP(n){
+  if(n===null || n===undefined || isNaN(n)) return "—";
+  const sign = n<0 ? "-" : "";
+  return sign + "$" + Math.round(Math.abs(n)).toLocaleString('es-CO');
+}
+function fmtPct(n, dec=1){
+  if(n===null || n===undefined || isNaN(n)) return "—";
+  return (n*100).toFixed(dec) + "%";
+}
+function fmtNum(n, dec=0){
+  if(n===null || n===undefined || isNaN(n)) return "—";
+  return n.toLocaleString('es-CO', {maximumFractionDigits:dec});
+}
+function fmtX(n, dec=2){
+  if(n===null || n===undefined || isNaN(n)) return "—";
+  return n.toFixed(dec) + "x";
+}
+function getPath(obj, path){
+  return path.split('.').reduce((o,k)=> (o===undefined||o===null)?undefined:o[k], obj);
+}
+function setPath(obj, path, val){
+  const parts = path.split('.');
+  let o = obj;
+  for(let i=0;i<parts.length-1;i++){
+    o = o[parts[i]];
+  }
+  o[parts[parts.length-1]] = val;
+}
+
+/* ============================================================
+   SIDEBAR / PATH NAV
+   ============================================================ */
+function renderSidebar(){
+  const ul = document.getElementById('stations');
+  ul.innerHTML = PHASES.map(p=>{
+    let cls = 'station';
+    if(p.n === currentPhase) cls += ' active';
+    else if(p.n < currentPhase) cls += ' done';
+    return `<li class="${cls}" onclick="goPhase(${p.n})">
+      <div class="dot">${p.n < currentPhase ? '✓' : p.n}</div>
+      <div class="label"><div class="t">${p.t}</div><div class="d">${p.d}</div></div>
+    </li>`;
+  }).join('');
+  const pct = ((currentPhase-1)/(TOTAL_PHASES-1))*100;
+  document.getElementById('pathFg').setAttribute('y2', pct.toFixed(1));
+}
+
+/* ============================================================
+   NAVEGACIÓN
+   ============================================================ */
+function goPhase(n){
+  if(n < 1 || n > TOTAL_PHASES) return;
+  currentPhase = n;
+  renderSidebar();
+  renderPhaseHeader();
+  renderPhaseContent();
+  document.getElementById('btnPrev').disabled = (n===1);
+  document.getElementById('btnNext').textContent = (n===TOTAL_PHASES) ? 'Actualizar resultados' : 'Siguiente →';
+  document.getElementById('btnNext').onclick = (n===TOTAL_PHASES) ? renderPhase7 : ()=>goPhase(currentPhase+1);
+  document.getElementById('sidebar').classList.remove('open');
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function renderPhaseHeader(){
+  const p = PHASES[currentPhase-1];
+  document.getElementById('phaseHeader').innerHTML = `
+    <div class="phase-eyebrow">Fase ${p.n} de ${TOTAL_PHASES} · ${p.d}</div>
+    <h2 class="phase-title">${p.t}</h2>
+    <p class="phase-intro">${PHASE_INTROS[p.n]}</p>
+  `;
+}
+
+const PHASE_INTROS = {
+  1: "Cuéntanos qué proyecto vamos a evaluar. Esta información solo es de identificación y aparecerá en el documento final.",
+  2: "Estos son los parámetros financieros generales del modelo. Si no conoces alguno, déjalo en el valor sugerido — son referencias institucionales típicas de Comfamiliar.",
+  3: "El CAPEX es la inversión inicial: todo lo que hay que comprar o construir para arrancar el proyecto. Agrega tantos ítems como necesites, y deja la fuente o referencia de cada dato.",
+  4: "El OPEX son los costos anuales para operar el proyecto (Año 1). El modelo los proyectará automáticamente a 5 años aplicando la inflación.",
+  5: "Aquí proyectamos cuánto generará el proyecto en ingresos. Elige el método de proyección y completa la información para los tres escenarios: Propio, Mixto y Tercerizado.",
+  6: "Aquí definimos cómo se reparte el proyecto entre Comfamiliar y un tercero, y cuánto aporta cada escenario a la operación institucional. También definimos el impacto social esperado.",
+  7: "Este es el resultado: el modelo calculó automáticamente los 3 escenarios. Revisa los indicadores, las gráficas y escribe tus conclusiones."
+};
+
+/* ============================================================
+   COMPONENTES DE FORMULARIO
+   ============================================================ */
+function field({label, path, help, unit, format, min, step}){
+  const raw = getPath(state, path);
+  let display = format==='pct' ? (raw*100) : raw;
+  if(typeof display === 'number') display = Math.round(display*1e6)/1e6;
+  return `<div class="field">
+    <label>${label}</label>
+    <input type="number" ${step?`step="${step}"`:''} ${min!==undefined?`min="${min}"`:''}
+      value="${display}" data-path="${path}" data-format="${format||'num'}"
+      oninput="onFieldInput(this)">
+    ${unit?`<div class="unit-suffix">${unit}</div>`:''}
+    ${help?`<div class="help">${help}</div>`:''}
+  </div>`;
+}
+function fieldText({label, path, help, options}){
+  const raw = getPath(state, path);
+  if(options){
+    return `<div class="field">
+      <label>${label}</label>
+      <select data-path="${path}" data-format="text" onchange="onFieldInput(this)">
+        ${options.map(o=>`<option value="${o}" ${o===raw?'selected':''}>${o}</option>`).join('')}
+      </select>
+      ${help?`<div class="help">${help}</div>`:''}
+    </div>`;
+  }
+  return `<div class="field">
+    <label>${label}</label>
+    <input type="text" value="${raw||''}" data-path="${path}" data-format="text" oninput="onFieldInput(this)">
+    ${help?`<div class="help">${help}</div>`:''}
+  </div>`;
+}
+function onFieldInput(el){
+  const path = el.dataset.path;
+  const fmt = el.dataset.format;
+  let val;
+  if(fmt==='text'){ val = el.value; }
+  else if(fmt==='pct'){ val = (parseFloat(el.value)||0)/100; }
+  else { val = parseFloat(el.value)||0; }
+  setPath(state, path, val);
+  if(typeof updateLivePreview === 'function') updateLivePreview();
+}
+
+/* ============================================================
+   MOTOR FINANCIERO
+   ============================================================ */
+function npv(rate, flows){
+  let total=0;
+  for(let i=0;i<flows.length;i++) total += flows[i]/Math.pow(1+rate,i);
+  return total;
+}
+function irr(flows){
+  let lo=-0.99, hi=5;
+  let flo=npv(lo,flows), fhi=npv(hi,flows);
+  if(isNaN(flo)||isNaN(fhi)) return null;
+  if(flo*fhi>0){
+    hi=10; fhi=npv(hi,flows);
+    if(flo*fhi>0) return null;
+  }
+  for(let i=0;i<100;i++){
+    const mid=(lo+hi)/2;
+    const fmid=npv(mid,flows);
+    if(Math.abs(fmid)<1e-6) return mid;
+    if(flo*fmid<0){ hi=mid; fhi=fmid; } else { lo=mid; flo=fmid; }
+  }
+  return (lo+hi)/2;
+}
+function computePayback(acumulado){
+  for(let i=1;i<acumulado.length;i++){
+    if(acumulado[i]>=0){
+      const prev = acumulado[i-1];
+      const cur = acumulado[i];
+      const frac = prev/(prev-cur);
+      return (i-1)+frac;
+    }
+  }
+  return null;
+}
+
+function calcEscenario(escKey){
+  let usuarios=[], precio=[], ticket=[], compl=[], ingresoTotal=[];
+  const capexKeyTmp = escKey==='propio'?'p': escKey==='mixto'?'m':'t';
+
+  if(state.ingresoMetodo === 'global'){
+    const items = state.ingresosGlobales || [];
+    for(let i=0;i<5;i++){
+      let total=0;
+      items.forEach(it=>{ total += (it[capexKeyTmp]||0) * Math.pow(1+(it.crecimiento||0), i); });
+      usuarios[i]=0; precio[i]=0; ticket[i]=total; compl[i]=0; ingresoTotal[i]=total;
+    }
+  } else {
+    // Nuevo método unitario: tabla con precio × cantidad por escenario
+    const items = state.ingresosUnitarios || [];
+    const pKey = 'precio'+capexKeyTmp.toUpperCase();
+    const cKey = 'cant'+capexKeyTmp.toUpperCase();
+    for(let i=0;i<5;i++){
+      let total=0;
+      items.forEach(it=>{
+        const p = (it['precio'+capexKeyTmp.toUpperCase()]||it['precio'+capexKeyTmp]||0);
+        const c = (it['cant'+capexKeyTmp.toUpperCase()]||it['cant'+capexKeyTmp]||0);
+        total += p * c * Math.pow(1+(it.crecimiento||0), i);
+      });
+      usuarios[i]=0; precio[i]=0; ticket[i]=total; compl[i]=0; ingresoTotal[i]=total;
+    }
+  }
+
+  const capexKey = escKey==='propio'?'p': escKey==='mixto'?'m':'t';
+  let totalCapex=0;
+  let dep=[0,0,0,0,0];
+  state.capex.forEach(item=>{
+    const val = item[capexKey]||0;
+    totalCapex += val;
+    for(let y=1;y<=5;y++){ if(item.vida>=y) dep[y-1] += val/item.vida; }
+  });
+
+  let opexTotal=[0,0,0,0,0];
+  state.opex.forEach(item=>{
+    let v = item[capexKey]||0;
+    for(let i=0;i<5;i++){
+      if(i>0) v = v*(1+state.control.inflacion);
+      opexTotal[i]+=v;
+    }
+  });
+
+  let asign=[0,0,0,0,0], distr=[0,0,0,0,0];
+  for(let i=0;i<5;i++){
+    if(escKey==='propio'){
+      asign[i] = ingresoTotal[i]*state.escenarios.pctAsignaciones;
+      distr[i] = ingresoTotal[i]*state.escenarios.pctDistribuciones;
+    } else if(escKey==='mixto'){
+      asign[i] = ingresoTotal[i]*state.escenarios.pctAsignaciones*state.escenarios.pctParticipacionMixto;
+      distr[i] = ingresoTotal[i]*state.escenarios.pctDistribuciones*state.escenarios.pctParticipacionMixto;
+    }
+  }
+
+  let ebitda=[], ebit=[];
+  for(let i=0;i<5;i++){
+    ebitda[i] = ingresoTotal[i]-opexTotal[i]-asign[i]-distr[i];
+    ebit[i] = ebitda[i]-dep[i];
+  }
+
+  let interes=[0,0,0,0,0];
+  if(escKey!=='terc'){
+    const deudaInicial = totalCapex*state.control.pctDeudaCapex;
+    const r = state.control.ibr+state.control.spread;
+    const n = state.control.plazoDeuda;
+    const cuota = r===0 ? deudaInicial/n : deudaInicial*r/(1-Math.pow(1+r,-n));
+    let saldo = deudaInicial;
+    for(let i=0;i<5;i++){
+      interes[i] = saldo*r;
+      const amort = cuota-interes[i];
+      saldo = Math.max(0, saldo-amort);
+    }
+  }
+
+  let ebt=[], impuestos=[], utilidad=[];
+  for(let i=0;i<5;i++){
+    ebt[i] = ebit[i]-interes[i];
+    impuestos[i] = Math.max(0,ebt[i])*state.control.taxRate;
+    utilidad[i] = ebt[i]-impuestos[i];
+  }
+
+  const diasCart = state.diasCartera[escKey] || 30;
+  let fcff=[-totalCapex];
+  let acumulado=[-totalCapex];
+  let impOpArr=[], capexRepoArr=[], deltaWCArr=[], ktAcum=0;
+  for(let i=0;i<5;i++){
+    const impOp = Math.max(0,ebit[i])*state.control.taxRate;
+    const capexRepo = ingresoTotal[i]*state.control.capexRepoPct;
+    // Capital de trabajo basado en días de cartera: KT = (Ingresos/365)*días_cartera
+    const ktAno = (ingresoTotal[i]/365)*diasCart;
+    const deltaWC = ktAno - (i===0 ? 0 : (ingresoTotal[i-1]/365)*diasCart);
+    ktAcum = ktAno;
+    impOpArr.push(impOp);
+    capexRepoArr.push(capexRepo);
+    deltaWCArr.push(deltaWC);
+    const f = ebitda[i]-impOp-capexRepo-deltaWC;
+    fcff.push(f);
+    acumulado.push(acumulado[acumulado.length-1]+f);
+  }
+
+  const vpn = npv(state.control.wacc, fcff);
+  const tir = irr(fcff);
+  const payback = computePayback(acumulado);
+  const bc = totalCapex>0 ? (vpn+totalCapex)/totalCapex : null;
+
+  const beneficiarios = state.social.beneficiarios;
+  const costoPorBenef = beneficiarios>0 ? opexTotal[0]/beneficiarios : null;
+  const sroi = totalCapex>0 ? (beneficiarios*state.social.valorSocialUnitario)/totalCapex : null;
+  const valorSocialTotal = beneficiarios*state.social.valorSocialUnitario;
+
+  const feeComfamiliar = utilidad.map(u=> escKey==='terc'? u*state.escenarios.pctFeeTercerizado : null);
+
+  return {
+    usuarios, precio, ticket, compl, ingresoTotal,
+    totalCapex, dep, opexTotal, asign, distr, ebitda, ebit, interes, ebt, impuestos, utilidad,
+    fcff, acumulado, vpn, tir, payback, bc,
+    impOpArr, capexRepoArr, deltaWCArr, diasCart,
+    beneficiarios, costoPorBenef, sroi, valorSocialTotal, feeComfamiliar
+  };
+}
+function calculateAll(){
+  return { propio: calcEscenario('propio'), mixto: calcEscenario('mixto'), terc: calcEscenario('terc') };
+}
+
+/* ============================================================
+   RENDER DE FASES
+   ============================================================ */
+function renderPhaseContent(){
+  const el = document.getElementById('phaseContent');
+  switch(currentPhase){
+    case 1: el.innerHTML = renderPhase1(); break;
+    case 2: el.innerHTML = renderPhase2(); break;
+    case 3: el.innerHTML = renderPhase4(); break;  // CAPEX
+    case 4: el.innerHTML = renderPhase5(); break;  // OPEX
+    case 5: el.innerHTML = renderPhase3(); break;  // Ingresos
+    case 6: el.innerHTML = renderPhase6(); break;
+    case 7: el.innerHTML = renderPhase7Shell(); renderPhase7(); break;
+  }
+  updateLivePreview();
+}
+
+function updateLivePreview(){
+  if(currentPhase===2) updateTasaDeudaPreview();
+  if(currentPhase===3){
+    if(state.ingresoMetodo==='unitario'){ renderIngUnitBody(); updateIngUnitTotals(); }
+    else if(state.ingresoMetodo==='global') updateIngresoGlobalTotals();
+  }
+  if(currentPhase===3) updateKTPreview();
+  if(currentPhase===4) updateCapexTotals();
+  if(currentPhase===5) updateOpexTotals();
+}
+
+function updateTasaDeudaPreview(){
+  const box = document.getElementById('tasaDeudaPreview');
+  if(!box) return;
+  const tasa = state.control.ibr + state.control.spread;
+  const tipo = state.control.tasaRefTipo;
+  box.innerHTML = `
+    <div class="pv-item"><div class="k">Tasa de deuda resultante</div><div class="v">${fmtPct(tasa,2)}</div></div>
+    <div class="pv-item"><div class="k">${tipo} + Spread</div><div class="v">${fmtPct(state.control.ibr,2)} + ${fmtPct(state.control.spread,2)}</div></div>
+  `;
+}
+
+/* ---- Componente: Observación / Fuente + Adjuntar ---- */
+function refCell(arr, idx){
+  const list = getPath(state, arr);
+  const item = list[idx];
+  const obs = item.obs || '';
+  const archivo = item.archivo || '';
+  const safeArr = arr.replace(/\./g,'_');
+  const inputId = `file_${safeArr}_${idx}`;
+  return `<div class="ref-cell">
+    <input type="text" placeholder="Fuente / observación" value="${obs}" data-path="${arr}.${idx}.obs" data-format="text" oninput="onFieldInput(this)">
+    <label class="file-chip" for="${inputId}" title="${archivo||'Adjuntar'}">📎 ${archivo||'Adjuntar'}</label>
+    <input type="file" id="${inputId}" style="display:none" onchange="onLineFile('${arr}',${idx},this)">
+  </div>`;
+}
+function onLineFile(arr, idx, inputEl){
+  const f = inputEl.files && inputEl.files[0];
+  const list = getPath(state, arr);
+  list[idx].archivo = f ? f.name : '';
+  if(arr==='capex') renderCapexBody();
+  else if(arr==='opex') renderOpexBody();
+  else if(arr==='ingresosUnitarios') renderIngUnitBody();
+  else if(arr==='ingresosGlobales') renderIngresoGlobalBody();
+}
+
+/* ---------- FASE 3 (Ingresos) ---------- */
+const ESC_LABELS = {propio:"Propio", mixto:"Mixto", terc:"Tercerizado"};
+function renderPhase3(){
+  const metodo = state.ingresoMetodo;
+  return `
+  <div class="card">
+    <h3>Método de proyección de ingresos</h3>
+    <div class="card-sub">Elige cómo quieres proyectar los ingresos. Esta elección aplica a los tres escenarios.</div>
+    <div class="scenario-tabs">
+      <div class="scenario-tab ${metodo==='unitario'?'active':''}" onclick="setIngresoMetodo('unitario')">Por precios unitarios</div>
+      <div class="scenario-tab ${metodo==='global'?'active':''}" data-esc="mixto" onclick="setIngresoMetodo('global')">Por ingresos globales</div>
+    </div>
+    <div class="help" style="margin-top:10px;">
+      ${metodo==='unitario'
+        ? 'Define cada línea de ingreso con su precio y cantidad por escenario (Propio/Mixto/Tercerizado). El total se calcula automáticamente.'
+        : 'Digita directamente el ingreso anual (Año 1) por cada línea de negocio, para cada escenario, con su % de crecimiento.'}
+    </div>
+  </div>
+
+  ${metodo==='unitario' ? renderUnitarioTable() : renderGlobalTable()}
+
+  <div class="card">
+    <h3>Días de cartera / recuperación de ingresos</h3>
+    <div class="card-sub">¿En cuántos días se recupera efectivamente el dinero cobrado? Esto afecta el capital de trabajo real del proyecto y el flujo de caja.</div>
+    <div class="field-grid">
+      ${field({label:"Días de cartera — Propio", path:"diasCartera.propio", unit:"días promedio de recuperación", step:"5",
+        help:"Ej: si cobras mensualmente y el cliente paga a 30 días, escribe 30."})}
+      ${field({label:"Días de cartera — Mixto", path:"diasCartera.mixto", unit:"días promedio de recuperación", step:"5",
+        help:"Puede variar si en el escenario mixto hay convenios con plazos distintos."})}
+      ${field({label:"Días de cartera — Tercerizado", path:"diasCartera.terc", unit:"días promedio de recuperación", step:"5",
+        help:"El operador externo puede tener plazos de pago del fee distintos."})}
+    </div>
+    <div class="preview-box" id="ingresosPreview2" style="margin-top:14px">
+      <div class="pv-item"><div class="k">Capital de trabajo Propio (Año 1)</div><div class="v" id="kt_propio">—</div></div>
+      <div class="pv-item"><div class="k">Capital de trabajo Mixto (Año 1)</div><div class="v" id="kt_mixto">—</div></div>
+      <div class="pv-item"><div class="k">Capital de trabajo Tercerizado (Año 1)</div><div class="v" id="kt_terc">—</div></div>
+    </div>
+  </div>`;
+}
+function renderUnitarioTable(){
+  return `<div class="card">
+    <h3>Líneas de ingreso — precios unitarios</h3>
+    <div class="card-sub">Ingresa el precio y la cantidad anual para cada línea, por escenario. Total = Precio × Cantidad.</div>
+    <div style="overflow-x:auto">
+    <table class="line-table" id="ingUnitTable">
+      <thead>
+        <tr>
+          <th rowspan="2" style="width:22%">Concepto</th>
+          <th colspan="2" style="text-align:center;background:rgba(27,58,95,0.06)">Propio</th>
+          <th colspan="2" style="text-align:center;background:rgba(111,168,216,0.1)">Mixto</th>
+          <th colspan="2" style="text-align:center;background:rgba(244,183,49,0.1)">Tercerizado</th>
+          <th rowspan="2" style="width:10%">Crec. anual</th>
+          <th rowspan="2" style="width:16%">Fuente / Anexo</th>
+          <th rowspan="2" style="width:36px"></th>
+        </tr>
+        <tr>
+          <th style="background:rgba(27,58,95,0.04)">Precio</th>
+          <th style="background:rgba(27,58,95,0.04)">Cantidad/año</th>
+          <th style="background:rgba(111,168,216,0.07)">Precio</th>
+          <th style="background:rgba(111,168,216,0.07)">Cantidad/año</th>
+          <th style="background:rgba(244,183,49,0.07)">Precio</th>
+          <th style="background:rgba(244,183,49,0.07)">Cantidad/año</th>
+        </tr>
+      </thead>
+      <tbody id="ingUnitBody"></tbody>
+      <tfoot>
+        <tr class="total-row">
+          <td>TOTAL INGRESO AÑO 1</td>
+          <td colspan="2" id="ingUnitTotalP" class="mono" style="text-align:center"></td>
+          <td colspan="2" id="ingUnitTotalM" class="mono" style="text-align:center"></td>
+          <td colspan="2" id="ingUnitTotalT" class="mono" style="text-align:center"></td>
+          <td></td><td></td><td></td>
+        </tr>
+      </tfoot>
+    </table>
+    </div>
+    <button class="add-row-btn" onclick="addIngUnitRow()">+ Agregar línea de ingreso</button>
+    <div class="preview-box" id="ingresosPreview"></div>
+  </div>`;
+}
+function renderGlobalTable(){
+  return `<div class="card">
+    <h3>Ingresos por operación</h3>
+    <div class="card-sub">Agrega cada línea de ingreso anual (Año 1) para los tres escenarios, con su crecimiento esperado y la fuente de la información.</div>
+    <div style="overflow-x:auto">
+    <table class="line-table" id="ingGlobalTable">
+      <thead><tr>
+        <th style="width:26%">Concepto</th>
+        <th>Propio (COP/año)</th>
+        <th>Mixto (COP/año)</th>
+        <th>Tercerizado (COP/año)</th>
+        <th style="width:11%">Crecimiento anual</th>
+        <th style="width:18%">Fuente / Anexo</th>
+        <th style="width:36px"></th>
+      </tr></thead>
+      <tbody id="ingGlobalBody"></tbody>
+      <tfoot>
+        <tr class="total-row">
+          <td>INGRESO TOTAL AÑO 1</td>
+          <td id="ingGlobalTotalP" class="mono"></td>
+          <td id="ingGlobalTotalM" class="mono"></td>
+          <td id="ingGlobalTotalT" class="mono"></td>
+          <td></td><td></td><td></td>
+        </tr>
+      </tfoot>
+    </table>
+    </div>
+    <button class="add-row-btn" onclick="addIngresoGlobalRow()">+ Agregar línea de ingreso</button>
+    <div class="preview-box" id="ingresosPreview"></div>
+  </div>`;
+}
+function setIngresoMetodo(m){
+  state.ingresoMetodo = m;
+  renderPhaseContent();
+}
+
+/* ---- TABLA UNITARIA ---- */
+function renderIngUnitBody(){
+  const body = document.getElementById('ingUnitBody');
+  if(!body) return;
+  body.innerHTML = state.ingresosUnitarios.map((item,idx)=>`<tr>
+    <td><input type="text" value="${item.nombre}" data-path="ingresosUnitarios.${idx}.nombre" data-format="text" oninput="onFieldInput(this)"></td>
+    <td><input type="number" value="${item.precioP||0}" data-path="ingresosUnitarios.${idx}.precioP" step="1000" oninput="onFieldInput(this);updateIngUnitTotals()"></td>
+    <td><input type="number" value="${item.cantP||0}" data-path="ingresosUnitarios.${idx}.cantP" step="10" oninput="onFieldInput(this);updateIngUnitTotals()"></td>
+    <td><input type="number" value="${item.precioM||0}" data-path="ingresosUnitarios.${idx}.precioM" step="1000" oninput="onFieldInput(this);updateIngUnitTotals()"></td>
+    <td><input type="number" value="${item.cantM||0}" data-path="ingresosUnitarios.${idx}.cantM" step="10" oninput="onFieldInput(this);updateIngUnitTotals()"></td>
+    <td><input type="number" value="${item.precioT||0}" data-path="ingresosUnitarios.${idx}.precioT" step="1000" oninput="onFieldInput(this);updateIngUnitTotals()"></td>
+    <td><input type="number" value="${item.cantT||0}" data-path="ingresosUnitarios.${idx}.cantT" step="10" oninput="onFieldInput(this);updateIngUnitTotals()"></td>
+    <td><input type="number" value="${Math.round((item.crecimiento||0)*1e6)/1e6*100}" data-path="ingresosUnitarios.${idx}.crecimiento" data-format="pct" step="0.5" oninput="onFieldInput(this);updateIngUnitTotals()" style="width:72px"></td>
+    <td>${refCell('ingresosUnitarios', idx)}</td>
+    <td><button class="row-remove" onclick="removeIngUnitRow(${idx})" title="Eliminar">✕</button></td>
+  </tr>`).join('');
+}
+function addIngUnitRow(){
+  state.ingresosUnitarios.push({nombre:"Nueva línea", precioP:0,cantP:0,precioM:0,cantM:0,precioT:0,cantT:0, crecimiento:0.04, obs:"", archivo:""});
+  renderIngUnitBody(); updateIngUnitTotals();
+}
+function removeIngUnitRow(idx){
+  state.ingresosUnitarios.splice(idx,1);
+  renderIngUnitBody(); updateIngUnitTotals();
+}
+function updateIngUnitTotals(){
+  renderIngUnitBody();
+  const tot={p:0,m:0,t:0};
+  state.ingresosUnitarios.forEach(it=>{
+    tot.p += (it.precioP||0)*(it.cantP||0);
+    tot.m += (it.precioM||0)*(it.cantM||0);
+    tot.t += (it.precioT||0)*(it.cantT||0);
+  });
+  const tp=document.getElementById('ingUnitTotalP');
+  const tm=document.getElementById('ingUnitTotalM');
+  const tt=document.getElementById('ingUnitTotalT');
+  if(tp){ tp.textContent=fmtCOP(tot.p); tm.textContent=fmtCOP(tot.m); tt.textContent=fmtCOP(tot.t); }
+  updateKTPreview();
+}
+function updateKTPreview(){
+  ['propio','mixto','terc'].forEach(esc=>{
+    const r = calcEscenario(esc);
+    const el = document.getElementById('kt_'+esc);
+    if(el) el.textContent = fmtCOP((r.ingresoTotal[0]/365)*state.diasCartera[esc]);
+  });
+}
+
+/* ---------- FASE 4: CAPEX ---------- */
+function renderPhase4(){
+  return `
+  <div class="card">
+    <h3>Inversión inicial (CAPEX)</h3>
+    <div class="card-sub">Agrega cada activo o gasto de inversión inicial. La "vida útil" determina cuántos años se deprecia.</div>
+    <div style="overflow-x:auto">
+    <table class="line-table" id="capexTable">
+      <thead><tr>
+        <th style="width:26%">Concepto</th>
+        <th style="width:9%">Vida útil (años)</th>
+        <th>Propio (COP)</th>
+        <th>Mixto (COP)</th>
+        <th>Tercerizado (COP)</th>
+        <th style="width:18%">Fuente / Anexo</th>
+        <th style="width:36px"></th>
+      </tr></thead>
+      <tbody id="capexBody"></tbody>
+      <tfoot>
+        <tr class="total-row">
+          <td>TOTAL CAPEX</td><td></td>
+          <td id="capexTotalP" class="mono"></td>
+          <td id="capexTotalM" class="mono"></td>
+          <td id="capexTotalT" class="mono"></td>
+          <td></td><td></td>
+        </tr>
+      </tfoot>
+    </table>
+    </div>
+    <button class="add-row-btn" onclick="addCapexRow()">+ Agregar ítem de inversión</button>
+  </div>`;
+}
+function renderCapexBody(){
+  const body = document.getElementById('capexBody');
+  if(!body) return;
+  body.innerHTML = state.capex.map((item,idx)=>`<tr>
+    <td><input type="text" value="${item.nombre}" data-path="capex.${idx}.nombre" data-format="text" oninput="onFieldInput(this)"></td>
+    <td><input type="number" value="${item.vida}" data-path="capex.${idx}.vida" step="1" oninput="onFieldInput(this); updateCapexTotals()" style="width:80px"></td>
+    <td><input type="number" value="${item.p}" data-path="capex.${idx}.p" step="100000" oninput="onFieldInput(this); updateCapexTotals()"></td>
+    <td><input type="number" value="${item.m}" data-path="capex.${idx}.m" step="100000" oninput="onFieldInput(this); updateCapexTotals()"></td>
+    <td><input type="number" value="${item.t}" data-path="capex.${idx}.t" step="100000" oninput="onFieldInput(this); updateCapexTotals()"></td>
+    <td>${refCell('capex', idx)}</td>
+    <td><button class="row-remove" onclick="removeCapexRow(${idx})" title="Eliminar">✕</button></td>
+  </tr>`).join('');
+}
+function addCapexRow(){
+  state.capex.push({nombre:"Nuevo ítem", vida:5, p:0, m:0, t:0});
+  renderCapexBody(); updateCapexTotals();
+}
+function removeCapexRow(idx){
+  state.capex.splice(idx,1);
+  renderCapexBody(); updateCapexTotals();
+}
+function updateCapexTotals(){
+  renderCapexBody();
+  const tot = {p:0,m:0,t:0};
+  state.capex.forEach(it=>{ tot.p+=it.p||0; tot.m+=it.m||0; tot.t+=it.t||0; });
+  const tp=document.getElementById('capexTotalP'), tm=document.getElementById('capexTotalM'), tt=document.getElementById('capexTotalT');
+  if(tp){ tp.textContent=fmtCOP(tot.p); tm.textContent=fmtCOP(tot.m); tt.textContent=fmtCOP(tot.t); }
+}
+
+/* ---------- FASE 5: OPEX ---------- */
+function renderPhase5(){
+  return `
+  <div class="card">
+    <h3>Costos de operación (OPEX) — Año 1</h3>
+    <div class="card-sub">Ingresa los costos anuales de operación del primer año. El modelo aplicará la inflación (${fmtPct(state.control.inflacion,1)}) para proyectar los años 2 a 5.</div>
+    <div style="overflow-x:auto">
+    <table class="line-table" id="opexTable">
+      <thead><tr>
+        <th style="width:28%">Concepto</th>
+        <th>Propio (COP/año)</th>
+        <th>Mixto (COP/año)</th>
+        <th>Tercerizado (COP/año)</th>
+        <th style="width:20%">Fuente / Anexo</th>
+        <th style="width:36px"></th>
+      </tr></thead>
+      <tbody id="opexBody"></tbody>
+      <tfoot>
+        <tr class="total-row">
+          <td>OPEX TOTAL AÑO 1</td>
+          <td id="opexTotalP" class="mono"></td>
+          <td id="opexTotalM" class="mono"></td>
+          <td id="opexTotalT" class="mono"></td>
+          <td></td><td></td>
+        </tr>
+      </tfoot>
+    </table>
+    </div>
+    <button class="add-row-btn" onclick="addOpexRow()">+ Agregar costo de operación</button>
+  </div>`;
+}
+function renderOpexBody(){
+  const body = document.getElementById('opexBody');
+  if(!body) return;
+  body.innerHTML = state.opex.map((item,idx)=>`<tr>
+    <td><input type="text" value="${item.nombre}" data-path="opex.${idx}.nombre" data-format="text" oninput="onFieldInput(this)"></td>
+    <td><input type="number" value="${item.p}" data-path="opex.${idx}.p" step="100000" oninput="onFieldInput(this); updateOpexTotals()"></td>
+    <td><input type="number" value="${item.m}" data-path="opex.${idx}.m" step="100000" oninput="onFieldInput(this); updateOpexTotals()"></td>
+    <td><input type="number" value="${item.t}" data-path="opex.${idx}.t" step="100000" oninput="onFieldInput(this); updateOpexTotals()"></td>
+    <td>${refCell('opex', idx)}</td>
+    <td><button class="row-remove" onclick="removeOpexRow(${idx})" title="Eliminar">✕</button></td>
+  </tr>`).join('');
+}
+function addOpexRow(){
+  state.opex.push({nombre:"Nuevo costo", p:0, m:0, t:0});
+  renderOpexBody(); updateOpexTotals();
+}
+function removeOpexRow(idx){
+  state.opex.splice(idx,1);
+  renderOpexBody(); updateOpexTotals();
+}
+function updateOpexTotals(){
+  renderOpexBody();
+  const tot = {p:0,m:0,t:0};
+  state.opex.forEach(it=>{ tot.p+=it.p||0; tot.m+=it.m||0; tot.t+=it.t||0; });
+  const tp=document.getElementById('opexTotalP'), tm=document.getElementById('opexTotalM'), tt=document.getElementById('opexTotalT');
+  if(tp){ tp.textContent=fmtCOP(tot.p); tm.textContent=fmtCOP(tot.m); tt.textContent=fmtCOP(tot.t); }
+}
+
+/* ---------- FASE 6 ---------- */
+function renderPhase6(){
+  return `
+  <div class="card">
+    <h3>Cargas institucionales por escenario</h3>
+    <div class="card-sub">Define cómo aporta cada escenario a la operación institucional de Comfamiliar.</div>
+    <div class="field-grid">
+      ${field({label:"% Asignaciones sobre ingresos", path:"escenarios.pctAsignaciones", format:"pct", unit:"% de los ingresos totales", step:"1",
+        help:"Aporte del proyecto a gastos administrativos compartidos de Comfamiliar (gerencia, contabilidad, jurídica)."})}
+      ${field({label:"% Distribuciones sobre ingresos", path:"escenarios.pctDistribuciones", format:"pct", unit:"% de los ingresos totales", step:"1",
+        help:"Aporte del proyecto al fondo de solidaridad / excedentes institucionales de Comfamiliar."})}
+      ${field({label:"% Participación de Comfamiliar — Escenario Mixto", path:"escenarios.pctParticipacionMixto", format:"pct", unit:"% del negocio que opera Comfamiliar", step:"1",
+        help:"En el escenario Mixto, ¿qué porcentaje del negocio opera y recibe Comfamiliar? El resto lo asume el socio/tercero."})}
+      ${field({label:"% Fee — Escenario Tercerizado", path:"escenarios.pctFeeTercerizado", format:"pct", unit:"% de la utilidad del operador externo", step:"1",
+        help:"En el escenario Tercerizado, Comfamiliar no opera el negocio; recibe un % de la utilidad del operador como retorno."})}
+    </div>
+    <div class="preview-box">
+      <div class="pv-item"><div class="k">Propio</div><div class="v" style="font-size:13px">100% participación · asignaciones y distribuciones completas</div></div>
+      <div class="pv-item"><div class="k">Mixto</div><div class="v" style="font-size:13px">${fmtPct(state.escenarios.pctParticipacionMixto)} participación · cargas proporcionales</div></div>
+      <div class="pv-item"><div class="k">Tercerizado</div><div class="v" style="font-size:13px">Sin cargas · retorno = ${fmtPct(state.escenarios.pctFeeTercerizado)} de la utilidad del operador</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Indicadores sociales</h3>
+    <div class="card-sub">Comfamiliar es una caja de compensación: además del retorno financiero, medimos el valor social generado.</div>
+    <div class="field-grid">
+      ${field({label:"Beneficiarios directos Año 1", path:"social.beneficiarios", unit:"personas atendidas", step:"10",
+        help:"¿Cuántas personas se benefician directamente del proyecto en el escenario Propio / Tercerizado? (en Mixto se ajusta por % de participación)."})}
+      ${field({label:"% Afiliados categorías A y B", path:"social.pctCatAB", format:"pct", unit:"% de los beneficiarios", step:"1",
+        help:"Porcentaje de los beneficiarios que pertenecen a las categorías de menores ingresos (focalización social)."})}
+      ${field({label:"Valor social unitario de referencia", path:"social.valorSocialUnitario", unit:"COP por beneficiario", step:"1000",
+        help:"Costo que tendría para una persona acceder a este servicio en el mercado, si Comfamiliar no lo ofreciera."})}
+    </div>
+  </div>`;
+}
+
+/* ---------- FASE 1 ---------- */
+function renderPhase1(){
+  return `
+  <div class="card">
+    <h3>Identificación del proyecto</h3>
+    <div class="card-sub">Esta información solo aparece como encabezado del documento final.</div>
+    <div class="field-grid">
+      ${fieldText({label:"Nombre del proyecto", path:"proyecto.nombre", help:"Ej. Centro de Imágenes Diagnósticas Pereira"})}
+      ${fieldText({label:"Código / ID en el PMO", path:"proyecto.codigo", help:"Si tu proyecto ya tiene un código asignado por la PMO, escríbelo aquí."})}
+      ${fieldText({label:"Responsable técnico", path:"proyecto.responsable", help:"Persona encargada de validar la información del proyecto."})}
+      ${fieldText({label:"Tipo de servicio / unidad de negocio", path:"proyecto.tipoServicio", help:"Ej. salud, recreación, turismo, educación, vivienda."})}
+      ${fieldText({label:"Horizonte de evaluación", path:"proyecto.horizonte", options:["5","10"], help:"El detalle año a año se calcula a 5 años. Si eliges 10, considera extender la proyección manualmente en el Excel para los años 6–10."})}
+    </div>
+  </div>`;
+}
+
+/* ---------- FASE 2 ---------- */
+function renderPhase2(){
+  return `
+  <div class="card">
+    <h3>Parámetros financieros generales</h3>
+    <div class="card-sub">Aplican a los tres escenarios. Los valores precargados son referencias institucionales — ajústalos si tu proyecto lo requiere.</div>
+    <div class="field-grid">
+      ${field({label:"Tasa de descuento (WACC)", path:"control.wacc", format:"pct", unit:"% efectivo anual", step:"0.1",
+        help:"Es la rentabilidad mínima que Comfamiliar espera de cualquier inversión. Si el proyecto rinde menos que esto, no conviene hacerlo."})}
+      ${field({label:"Tasa de impuestos efectiva", path:"control.taxRate", format:"pct", unit:"% sobre utilidad antes de impuestos", step:"0.1",
+        help:"Incluye ICA y otros impuestos aplicables al tipo de servicio (ej. 4.8% para medicamentos + complementarios)."})}
+      ${field({label:"Inflación de costos anual", path:"control.inflacion", format:"pct", unit:"% — escalamiento anual del OPEX", step:"0.1",
+        help:"Qué tanto suben los costos de operación cada año."})}
+      ${field({label:"Capital de trabajo sobre ingresos", path:"control.wcPct", format:"pct", unit:"% del crecimiento en ingresos", step:"0.1",
+        help:"Caja adicional que el proyecto necesita guardar para operar sin contratiempos (cartera, inventarios, etc.)."})}
+      ${field({label:"CAPEX de reposición sobre ingresos", path:"control.capexRepoPct", format:"pct", unit:"% anual sobre ingresos", step:"0.1",
+        help:"Reserva anual para reemplazar equipos o activos que se desgastan con el uso."})}
+    </div>
+  </div>
+  <div class="card">
+    <h3>Financiamiento con deuda (Escenarios Propio y Mixto)</h3>
+    <div class="card-sub">El escenario Tercerizado no usa deuda — el operador externo asume su propia inversión.</div>
+    <div class="field-grid">
+      ${fieldText({label:"Tipo de tasa de referencia", path:"control.tasaRefTipo", options:["IBR","DTF"],
+        help:"Elige la tasa que tu banco usa como referencia para el crédito."})}
+      ${field({label:`Valor ${state.control.tasaRefTipo} / DTF vigente`, path:"control.ibr", format:"pct", unit:"% efectivo anual", step:"0.01",
+        help:`Consulta el valor vigente de la ${state.control.tasaRefTipo} en el Banco de la República y actualízalo aquí.`})}
+      ${field({label:"Spread / margen del banco", path:"control.spread", format:"pct", unit:`% adicional sobre el ${state.control.tasaRefTipo}`, step:"0.1",
+        help:`Lo que el banco cobra por encima del ${state.control.tasaRefTipo}. Tasa de deuda = ${state.control.tasaRefTipo} + Spread.`})}
+      ${field({label:"% del CAPEX financiado con deuda", path:"control.pctDeudaCapex", format:"pct", unit:"% de la inversión inicial", step:"1",
+        help:"Qué porcentaje de la inversión inicial se financia con un crédito, en vez de recursos propios."})}
+      ${field({label:"Plazo de la deuda", path:"control.plazoDeuda", unit:"años", step:"1",
+        help:"A cuántos años se paga el crédito (método de cuota fija / francés)."})}
+    </div>
+    <div class="help" style="margin-top:14px;">
+      📎 Consulta las tasas IBR y DTF actualizadas semanalmente en el
+      <a href="https://www.banrep.gov.co/es/3-tasas-interes" target="_blank" rel="noopener" style="color:var(--cafetal); font-weight:600;">portal de tasas de interés del Banco de la República</a>.
+    </div>
+    <div class="preview-box" id="tasaDeudaPreview"></div>
+  </div>`;
+}
+
+/* ---------- FASE 7: RESULTADOS ---------- */
+let chartFlujo=null, chartVPN=null;
+let pygTab = 'propio';
+
+function renderPhase7Shell(){
+  return `
+  <div class="badge-draft">Borrador — Pendiente aprobación PMO</div>
+  <div class="verdict-grid" id="verdictGrid"></div>
+
+  <div class="chart-card">
+    <h3>Flujo de caja libre (FCFF) — comparativo 5 años</h3>
+    <div class="card-sub">Año 0 incluye la inversión inicial (CAPEX). Valores en COP.</div>
+    <div class="chart-wrap"><canvas id="chartFlujo"></canvas></div>
+  </div>
+
+  <div class="chart-card">
+    <h3>VPN por escenario</h3>
+    <div class="card-sub">Comparación del Valor Presente Neto a la tasa de descuento definida (${fmtPct(state.control.wacc)}).</div>
+    <div class="chart-wrap short"><canvas id="chartVPN"></canvas></div>
+  </div>
+
+  <div class="chart-card">
+    <h3>Estado de resultados proyectado</h3>
+    <div class="card-sub">Selecciona el escenario para ver el detalle año a año.</div>
+    <div class="scenario-tabs" id="pygTabs"></div>
+    <div style="overflow-x:auto"><table class="pyg-table" id="pygTable"></table></div>
+  </div>
+
+  <div class="chart-card">
+    <h3>Flujo de caja libre detallado (FCFF)</h3>
+    <div class="card-sub">Muestra la construcción del flujo desde el EBITDA, incluyendo depreciación, capital de trabajo por días de cartera y CAPEX de reposición.</div>
+    <div class="scenario-tabs" id="fcffTabs"></div>
+    <div style="overflow-x:auto"><table class="pyg-table" id="fcffTable"></table></div>
+  </div>
+
+  <div class="chart-card">
+    <h3>Impacto social del proyecto</h3>
+    <div class="card-sub">Esta es la población que se beneficia del servicio — es la misma sin importar el escenario de operación elegido.</div>
+    <div class="social-grid" id="socialImpactGrid"></div>
+  </div>
+
+  <div class="chart-card">
+    <h3>Eficiencia social por escenario</h3>
+    <div class="card-sub">A igual población beneficiada, así varía la eficiencia de cada modelo de operación. Verde = más eficiente, rojo = menos eficiente.</div>
+    <div class="social-grid" id="socialEffGrid"></div>
+  </div>
+
+  <div class="conclusion-box">
+    <h3 style="margin-bottom:14px;">Conclusiones y recomendación final</h3>
+    <div style="display:flex; flex-direction:column; gap:12px;">
+      ${[0,1,2,3].map(i=>`<textarea placeholder="Conclusión ${i+1}..." data-path="conclusiones.${i}" data-format="text" oninput="onFieldInput(this)">${state.conclusiones[i]}</textarea>`).join('')}
+    </div>
+  </div>
+
+  <div class="export-bar">
+    <button class="btn btn-dark" onclick="window.print()">📄 Exportar a PDF</button>
+    <button class="btn btn-ghost" onclick="exportCSV()">📊 Exportar resumen (CSV / Excel)</button>
+    <button class="btn btn-ghost" onclick="guardarBorrador()">💾 Guardar borrador</button>
+    <button class="btn btn-ghost" onclick="cargarBorrador()">📂 Cargar borrador</button>
+    <button class="btn btn-gold btn-gold-enviar" onclick="enviarPMO()">📤 Enviar a PMO</button>
+  </div>
+  `;
+}
+
+function renderPhase7(){
+  const r = calculateAll();
+  renderVerdictCards(r);
+  renderFlujoChart(r);
+  renderVPNChart(r);
+  renderPygTabs();
+  renderPygTable(r);
+  renderFcffTabs();
+  renderFcffTable(r);
+  renderSocialImpact(r);
+  renderSocialEfficiency(r);
+}
+
+let fcffTab = 'propio';
+function renderFcffTabs(){
+  const box = document.getElementById('fcffTabs');
+  if(!box) return;
+  box.innerHTML = Object.keys(ESC_LABELS).map(k=>
+    `<div class="scenario-tab ${k===fcffTab?'active':''}" data-esc="${k==='mixto'?'mixto':(k==='terc'?'terc':'')}" onclick="setFcffTab('${k}')">${ESC_LABELS[k]}</div>`
+  ).join('');
+}
+function setFcffTab(k){
+  fcffTab = k;
+  renderFcffTabs();
+  renderFcffTable(calculateAll());
+}
+function renderFcffTable(r){
+  const d = r[fcffTab];
+  const years = ['Año 1','Año 2','Año 3','Año 4','Año 5','Total'];
+  function rowSum(arr){ return arr.reduce((a,b)=>a+b,0); }
+  function row(label, arr, cls='', sub=false){
+    const vals = [...arr, rowSum(arr)];
+    return `<tr class="${cls}${sub?' sub':''}">
+      <td>${label}</td>
+      ${vals.map(v=>`<td class="v">${fmtCOP(v)}</td>`).join('')}
+    </tr>`;
+  }
+  // Capital de trabajo por año basado en días de cartera
+  const diasCart = state.diasCartera[fcffTab]||30;
+  const kt = d.ingresoTotal.map(ing=>(ing/365)*diasCart);
+  const deltaKT = kt.map((v,i)=> i===0 ? v : v-kt[i-1]);
+  const capexRepo = d.ingresoTotal.map(ing=>ing*state.control.capexRepoPct);
+  const impOp = d.ebit.map(e=>Math.max(0,e)*state.control.taxRate);
+  const fcffSinInv = d.ebitda.map((eb,i)=>eb - impOp[i] - capexRepo[i] - deltaKT[i]);
+
+  // Relación OPEX vs Ingresos
+  const coberturaOpex = d.ingresoTotal.map((ing,i)=> ing>0 ? d.opexTotal[i]/ing : 0);
+
+  const tbl = document.getElementById('fcffTable');
+  if(!tbl) return;
+  tbl.innerHTML = `
+    <thead><tr><th>Concepto</th>${years.map(y=>`<th>${y}</th>`).join('')}</tr></thead>
+    <tbody>
+      ${row('(+) EBITDA ajustado', d.ebitda, 'tot')}
+      ${row('(-) Impuestos operativos (sobre EBIT)', impOp.map(v=>-v), 'sub')}
+      ${row('(-) CAPEX de reposición ('+fmtPct(state.control.capexRepoPct)+')', capexRepo.map(v=>-v), 'sub')}
+      <tr class="sub"><td>(-) Δ Capital de trabajo (${diasCart} días cartera)</td>${deltaKT.map(v=>`<td class="v">${fmtCOP(-v)}</td>`).join('')}<td class="v">—</td></tr>
+      ${row('(+) Depreciación', d.dep, 'sub')}
+      <tr class="tot"><td>= FCFF operativo</td>${fcffSinInv.map(v=>`<td class="v">${fmtCOP(v)}</td>`).join('')}<td class="v">${fmtCOP(fcffSinInv.reduce((a,b)=>a+b,0))}</td></tr>
+      <tr style="height:8px"><td colspan="${years.length+1}"></td></tr>
+      <tr class="sub"><td colspan="${years.length+1}" style="font-size:12px;color:#8A95A6;padding-top:4px">📊 Capital de trabajo = (Ingresos / 365) × ${diasCart} días de cartera</td></tr>
+      <tr class="sub"><td>Capital de trabajo acumulado</td>${kt.map(v=>`<td class="v">${fmtCOP(v)}</td>`).join('')}<td class="v">—</td></tr>
+      <tr class="sub"><td>OPEX / Ingresos (cobertura)</td>${coberturaOpex.map(v=>`<td class="v">${fmtPct(v)}</td>`).join('')}<td class="v">—</td></tr>
+    </tbody>
+  `;
+}
+
+function semaforoInfo(esc){
+  if(esc.vpn>0){
+    if(esc.tir!==null && esc.tir>state.control.wacc){
+      return {cls:'ok', txt:'✅ Viable — VPN positivo y TIR mayor al WACC'};
+    }
+    if(esc.tir===null){
+      return {cls:'warn', txt:'⚠ Revisar — VPN positivo, TIR no calculable'};
+    }
+    return {cls:'warn', txt:'⚠ Revisar — VPN positivo pero TIR menor al WACC'};
+  }
+  return {cls:'bad', txt:'❌ No viable — VPN negativo'};
+}
+
+function renderVerdictCards(r){
+  const escs = [
+    {key:'propio', cls:'bg-propio', label:'Escenario Propio', d:r.propio},
+    {key:'mixto', cls:'bg-mixto', label:'Escenario Mixto', d:r.mixto},
+    {key:'terc', cls:'bg-terc', label:'Escenario Tercerizado', d:r.terc},
+  ];
+  document.getElementById('verdictGrid').innerHTML = escs.map(e=>{
+    const s = semaforoInfo(e.d);
+    const paybackTxt = e.d.payback===null ? '> 5 años' : e.d.payback.toFixed(1)+' años';
+    return `<div class="verdict-card ${e.cls}">
+      <div class="esc-name">${e.label}</div>
+      <h3>${fmtCOP(e.d.totalCapex)}</h3>
+      <div class="card-sub" style="margin-top:-4px;">Inversión inicial (CAPEX)</div>
+      <div class="semaforo ${s.cls}"><span class="pip"></span>${s.txt}</div>
+      <div class="metric-list">
+        <div class="m"><span class="lab">VPN</span><span class="val">${fmtCOP(e.d.vpn)}</span></div>
+        <div class="m"><span class="lab">TIR</span><span class="val">${e.d.tir===null?'N/D':fmtPct(e.d.tir)}</span></div>
+        <div class="m"><span class="lab">Payback</span><span class="val">${paybackTxt}</span></div>
+        <div class="m"><span class="lab">Relación B/C</span><span class="val">${fmtX(e.d.bc)}</span></div>
+        <div class="m"><span class="lab">EBITDA Año 1</span><span class="val">${fmtCOP(e.d.ebitda[0])}</span></div>
+        <div class="m"><span class="lab">Margen EBITDA Año 1</span><span class="val">${fmtPct(e.d.ingresoTotal[0]? e.d.ebitda[0]/e.d.ingresoTotal[0]:0)}</span></div>
+        ${e.key==='terc' ? `<div class="m"><span class="lab">Fee Comfamiliar Año 1</span><span class="val">${fmtCOP(e.d.feeComfamiliar[0])}</span></div>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderFlujoChart(r){
+  const ctx = document.getElementById('chartFlujo');
+  if(chartFlujo) chartFlujo.destroy();
+  const labels = ['Año 0','Año 1','Año 2','Año 3','Año 4','Año 5'];
+  chartFlujo = new Chart(ctx, {
+    type:'bar',
+    data:{
+      labels,
+      datasets:[
+        {label:'Propio', data:r.propio.fcff, backgroundColor:'#1B3A5F'},
+        {label:'Mixto', data:r.mixto.fcff, backgroundColor:'#6FA8D8'},
+        {label:'Tercerizado', data:r.terc.fcff, backgroundColor:'#F4B731'},
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{position:'bottom', labels:{font:{family:'Work Sans'}}},
+        tooltip:{callbacks:{label:(ctx)=> ctx.dataset.label+': '+fmtCOP(ctx.raw)}} },
+      scales:{
+        y:{ ticks:{ callback:(v)=> fmtCOP(v) }, grid:{color:'#EFE7D8'} },
+        x:{ grid:{display:false} }
+      }
+    }
+  });
+}
+
+function renderVPNChart(r){
+  const ctx = document.getElementById('chartVPN');
+  if(chartVPN) chartVPN.destroy();
+  chartVPN = new Chart(ctx, {
+    type:'bar',
+    data:{
+      labels:['Propio','Mixto','Tercerizado'],
+      datasets:[{
+        label:'VPN',
+        data:[r.propio.vpn, r.mixto.vpn, r.terc.vpn],
+        backgroundColor:['#1B3A5F','#6FA8D8','#F4B731'],
+        borderRadius:8
+      }]
+    },
+    options:{
+      indexAxis:'y',
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false},
+        tooltip:{callbacks:{label:(ctx)=> 'VPN: '+fmtCOP(ctx.raw)}} },
+      scales:{
+        x:{ ticks:{ callback:(v)=> fmtCOP(v) }, grid:{color:'#EFE7D8'} },
+        y:{ grid:{display:false} }
+      }
+    }
+  });
+}
+
+function renderPygTabs(){
+  const box = document.getElementById('pygTabs');
+  box.innerHTML = Object.keys(ESC_LABELS).map(k=>
+    `<div class="scenario-tab ${k===pygTab?'active':''}" data-esc="${k==='mixto'?'mixto':(k==='terc'?'terc':'')}" onclick="setPygTab('${k}')">${ESC_LABELS[k]}</div>`
+  ).join('');
+}
+function setPygTab(k){
+  pygTab = k;
+  renderPygTabs();
+  renderPygTable(calculateAll());
+}
+function renderPygTable(r){
+  const d = r[pygTab];
+  const years = ['Año 1','Año 2','Año 3','Año 4','Año 5','Total'];
+  function rowSum(arr){ return arr.reduce((a,b)=>a+b,0); }
+  function row(label, arr, cls=''){
+    const vals = [...arr, rowSum(arr)];
+    return `<tr class="${cls}">
+      <td>${label}</td>
+      ${vals.map(v=>`<td class="v">${fmtCOP(v)}</td>`).join('')}
+    </tr>`;
+  }
+  document.getElementById('pygTable').innerHTML = `
+    <thead><tr><th>Línea</th>${years.map(y=>`<th>${y}</th>`).join('')}</tr></thead>
+    <tbody>
+      ${row('Ingresos totales', d.ingresoTotal)}
+      ${row('(-) OPEX operativo', d.opexTotal.map(v=>-v), 'sub')}
+      ${row('(-) Asignaciones', d.asign.map(v=>-v), 'sub')}
+      ${row('(-) Distribuciones', d.distr.map(v=>-v), 'sub')}
+      ${row('EBITDA ajustado', d.ebitda, 'tot')}
+      ${row('(-) Depreciación', d.dep.map(v=>-v), 'sub')}
+      ${row('EBIT', d.ebit, 'tot')}
+      ${row('(-) Intereses deuda', d.interes.map(v=>-v), 'sub')}
+      ${row('EBT', d.ebt, 'sub')}
+      ${row('(-) Impuestos', d.impuestos.map(v=>-v), 'sub')}
+      ${row('Utilidad neta', d.utilidad, 'tot')}
+      ${pygTab==='terc' ? row('Fee Comfamiliar ('+fmtPct(state.escenarios.pctFeeTercerizado)+')', d.feeComfamiliar, 'tot') : ''}
+    </tbody>
+  `;
+}
+
+function rankClasses(values, lowerIsBetter){
+  // returns array of 'ok'/'warn'/'bad' aligned with input order, based on rank
+  const idx = values.map((v,i)=>({v,i}));
+  idx.sort((a,b)=> lowerIsBetter ? a.v-b.v : b.v-a.v);
+  const cls = ['ok','warn','bad'];
+  const out = [];
+  idx.forEach((item,rank)=>{ out[item.i] = cls[rank] || 'warn'; });
+  return out;
+}
+
+function renderSocialImpact(r){
+  const beneficiarios = r.propio.beneficiarios;
+  const valorSocialTotal = r.propio.valorSocialTotal;
+  document.getElementById('socialImpactGrid').innerHTML = `
+    <div class="social-card"><div class="k">Beneficiarios totales</div><div class="v">${fmtNum(beneficiarios)}</div><div class="d">personas Año 1 — independiente del escenario</div></div>
+    <div class="social-card"><div class="k">Focalización A/B</div><div class="v">${fmtPct(state.social.pctCatAB)}</div><div class="d">de los beneficiarios en categorías A y B</div></div>
+    <div class="social-card"><div class="k">Valor social generado</div><div class="v">${fmtCOP(valorSocialTotal)}</div><div class="d">beneficiarios × valor social unitario</div></div>
+  `;
+}
+
+function renderSocialEfficiency(r){
+  const escs = [
+    {key:'propio', label:'Propio', d:r.propio},
+    {key:'mixto', label:'Mixto', d:r.mixto},
+    {key:'terc', label:'Tercerizado', d:r.terc},
+  ];
+  const costos = escs.map(e=>e.d.costoPorBenef);
+  const srois = escs.map(e=>e.d.sroi);
+  const clsCosto = rankClasses(costos, true);   // menor costo = mejor
+  const clsSroi = rankClasses(srois, false);    // mayor SROI = mejor
+
+  let cards = '';
+  escs.forEach((e,i)=>{
+    cards += `<div class="social-card ${clsCosto[i]}"><div class="k">${e.label} · Costo/beneficiario</div><div class="v">${fmtCOP(e.d.costoPorBenef)}</div><div class="d">OPEX Año 1 / beneficiarios</div></div>`;
+  });
+  escs.forEach((e,i)=>{
+    cards += `<div class="social-card ${clsSroi[i]}"><div class="k">${e.label} · SROI</div><div class="v">${fmtX(e.d.sroi)}</div><div class="d">valor social / COP invertido</div></div>`;
+  });
+  document.getElementById('socialEffGrid').innerHTML = cards;
+}
+
+/* ---------- EXPORTAR CSV ---------- */
+function exportCSV(){
+  const r = calculateAll();
+  let rows = [];
+  rows.push(['PLANTILLA DE FACTIBILIDAD FINANCIERA — COMFAMILIAR RISARALDA']);
+  rows.push(['Proyecto', state.proyecto.nombre]);
+  rows.push(['Código PMO', state.proyecto.codigo]);
+  rows.push(['Responsable', state.proyecto.responsable]);
+  rows.push(['Tipo de servicio', state.proyecto.tipoServicio]);
+  rows.push(['Estado', 'BORRADOR - Pendiente aprobación PMO']);
+  rows.push([]);
+  rows.push(['Indicador','Propio','Mixto','Tercerizado']);
+  rows.push(['CAPEX inicial', r.propio.totalCapex, r.mixto.totalCapex, r.terc.totalCapex]);
+  rows.push(['Ingresos Año 1', r.propio.ingresoTotal[0], r.mixto.ingresoTotal[0], r.terc.ingresoTotal[0]]);
+  rows.push(['EBITDA Año 1', r.propio.ebitda[0], r.mixto.ebitda[0], r.terc.ebitda[0]]);
+  rows.push(['VPN', r.propio.vpn, r.mixto.vpn, r.terc.vpn]);
+  rows.push(['TIR', r.propio.tir, r.mixto.tir, r.terc.tir]);
+  rows.push(['Payback (años)', r.propio.payback, r.mixto.payback, r.terc.payback]);
+  rows.push(['Relación B/C', r.propio.bc, r.mixto.bc, r.terc.bc]);
+  rows.push([]);
+  rows.push(['Impacto social del proyecto (independiente del escenario)']);
+  rows.push(['Beneficiarios totales Año 1', r.propio.beneficiarios]);
+  rows.push(['Focalización A/B', state.social.pctCatAB]);
+  rows.push(['Valor social generado', r.propio.valorSocialTotal]);
+  rows.push([]);
+  rows.push(['Eficiencia social por escenario','Propio','Mixto','Tercerizado']);
+  rows.push(['Costo por beneficiario (OPEX/benef.)', r.propio.costoPorBenef, r.mixto.costoPorBenef, r.terc.costoPorBenef]);
+  rows.push(['SROI', r.propio.sroi, r.mixto.sroi, r.terc.sroi]);
+  rows.push([]);
+  rows.push(['ANEXO — Referencias y fuentes de información']);
+  rows.push(['Línea','Tipo','Fuente / Observación','Archivo de referencia']);
+  state.capex.forEach(it=>{ if(it.obs||it.archivo) rows.push([it.nombre,'CAPEX', it.obs||'', it.archivo||'']); });
+  state.opex.forEach(it=>{ if(it.obs||it.archivo) rows.push([it.nombre,'OPEX', it.obs||'', it.archivo||'']); });
+  if(state.ingresoMetodo==='global'){
+    state.ingresosGlobales.forEach(it=>{ if(it.obs||it.archivo) rows.push([it.nombre,'Ingresos', it.obs||'', it.archivo||'']); });
+  }
+  rows.push([]);
+  rows.push(['Conclusiones']);
+  state.conclusiones.forEach((c,i)=>{ if(c) rows.push([`${i+1}. ${c}`]); });
+
+  const csv = rows.map(row=> row.map(cell=>{
+    const s = String(cell===undefined||cell===null?'':cell);
+    return s.includes(',') || s.includes('\n') ? `"${s.replace(/"/g,'""')}"` : s;
+  }).join(',')).join('\n');
+
+  const blob = new Blob(["\uFEFF"+csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `Factibilidad_${(state.proyecto.nombre||'Proyecto').replace(/\s+/g,'_')}.csv`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+/* ============================================================
+   GUARDAR / CARGAR BORRADOR + ENVIAR A PMO — NIVEL 2
+   ============================================================ */
+function guardarBorrador(){
+  const borrador = {
+    version: 'SIPro-N2-v1',
+    fecha: new Date().toISOString(),
+    cup: state.proyecto.codigo,
+    state: JSON.parse(JSON.stringify(state))
+  };
+  const blob = new Blob([JSON.stringify(borrador, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'Borrador_SIPro_N2_'+(state.proyecto.codigo||'sin-cup').replace(/[^a-zA-Z0-9]/g,'-')+'.json';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(a.href);
+}
+
+function cargarBorrador(){
+  const input = document.createElement('input');
+  input.type = 'file'; input.accept = '.json';
+  input.onchange = e => {
+    const file = e.target.files[0]; if(!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try {
+        const b = JSON.parse(ev.target.result);
+        if(!b.version||!b.version.startsWith('SIPro-N2')) throw new Error('Archivo no válido para Nivel 2');
+        Object.assign(state, b.state);
+        goPhase(currentPhase);
+        alert('✅ Borrador cargado correctamente.\nProyecto: '+(state.proyecto.nombre||'Sin nombre')+'\nCUP: '+state.proyecto.codigo);
+      } catch(err){ alert('❌ No se pudo cargar el borrador.\nDetalle: '+err.message); }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+function enviarPMO(){
+  const r = calculateAll();
+  const campos = {
+    cup: state.proyecto.codigo,
+    nombre: state.proyecto.nombre,
+    responsable: state.proyecto.responsable,
+    tipo_servicio: state.proyecto.tipoServicio,
+    fecha: new Date().toLocaleDateString('es-CO'),
+    metodo_ingresos: state.ingresoMetodo,
+    wacc: state.control.wacc,
+    tasa_deuda: state.control.ibr + state.control.spread,
+    capex_propio: r.propio.totalCapex,
+    capex_mixto: r.mixto.totalCapex,
+    capex_terc: r.terc.totalCapex,
+    ingresos_y1_propio: r.propio.ingresoTotal[0],
+    ingresos_y1_mixto: r.mixto.ingresoTotal[0],
+    ingresos_y1_terc: r.terc.ingresoTotal[0],
+    vpn_propio: Math.round(r.propio.vpn),
+    vpn_mixto: Math.round(r.mixto.vpn),
+    vpn_terc: Math.round(r.terc.vpn),
+    tir_propio: r.propio.tir ? (r.propio.tir*100).toFixed(2)+'%' : 'N/D',
+    tir_mixto: r.mixto.tir ? (r.mixto.tir*100).toFixed(2)+'%' : 'N/D',
+    tir_terc: r.terc.tir ? (r.terc.tir*100).toFixed(2)+'%' : 'N/D',
+    payback_propio: r.propio.payback,
+    payback_mixto: r.mixto.payback,
+    payback_terc: r.terc.payback,
+    dias_cartera_propio: state.diasCartera.propio,
+    dias_cartera_mixto: state.diasCartera.mixto,
+    dias_cartera_terc: state.diasCartera.terc,
+    beneficiarios: r.propio.beneficiarios,
+    sroi_propio: r.propio.sroi ? r.propio.sroi.toFixed(2) : 'N/D',
+    estado: 'Gate 2 — Factibilidad aprobada'
+  };
+
+  const btn = document.querySelector('.btn-gold-enviar');
+  if(btn){ btn.textContent='⏳ Enviando...'; btn.disabled=true; }
+
+  enviarViaForm(
+    'https://script.google.com/macros/s/AKfycbzNDGOavQQjfOCCVj3gnrZ5lViq0ybAAUi_E1q-StAS0z3RH7EtEqlmRMQ-v9_ArK-n/exec',
+    {hoja:'Nivel2_Factibilidad', campos}
+  );
+
+  setTimeout(()=>{
+    if(btn){ btn.textContent='✅ Enviado'; btn.disabled=false; }
+    alert('✅ Factibilidad de "'+state.proyecto.nombre+'" ('+state.proyecto.codigo+') enviada a la PMO.\nRevisa la hoja "Nivel2_Factibilidad" en el Google Sheet SIPro.\nEstado: Gate 2 — Factibilidad aprobada.');
+  }, 2000);
+}
+
+function enviarViaForm(url, datos){
+  const json = encodeURIComponent(JSON.stringify(datos));
+  const img = new Image();
+  img.src = url + '?data=' + json;
+  try {
+    fetch(url, {
+      method: 'POST',
+      mode: 'no-cors',
+      body: new URLSearchParams({payload: JSON.stringify(datos)})
+    }).catch(()=>{});
+  } catch(e) {}
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+goPhase(1);
+</script>
+</body>
+</html>
+

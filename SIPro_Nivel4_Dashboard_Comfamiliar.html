@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Ejecutivo PMO — Comfamiliar Risaralda</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+  :root{
+    --tinto:#1B3A5F;
+    --tinto-light:#2F5C8C;
+    --achiote:#F4B731;
+    --achiote-dark:#B8860B;
+    --pergamino:#F4F6F9;
+    --pergamino-2:#E1E6ED;
+    --cafetal:#6FA8D8;
+    --oro:#FFD166;
+    --carbon:#1F2933;
+    --rojo:#C0392B;
+    --verde-ok:#2E8B57;
+    --amarillo:#D4A017;
+    --gris:#7C8896;
+    --paper:#FFFFFF;
+    --shadow:0 4px 16px rgba(31,41,51,0.08);
+    --shadow-lg:0 12px 32px rgba(31,41,51,0.14);
+    --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{font-family:'Work Sans',sans-serif;background:var(--pergamino);color:var(--carbon);-webkit-font-smoothing:antialiased;}
+  h1,h2,h3,h4{font-family:'Fraunces',serif;color:var(--tinto);margin:0;letter-spacing:-0.01em;}
+  .mono{font-family:'IBM Plex Mono',monospace;}
+
+  .app-shell{display:grid;grid-template-columns:240px 1fr;min-height:100vh;}
+  @media(max-width:880px){.app-shell{grid-template-columns:1fr;}.sidebar{display:none;}.sidebar.open{display:block;position:fixed;z-index:50;inset:0;width:100%;}}
+
+  .sidebar{background:var(--tinto);color:var(--pergamino);padding:26px 20px;position:sticky;top:0;height:100vh;overflow-y:auto;}
+  .brand .eyebrow{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--achiote);font-weight:600;}
+  .brand h1{color:#fff;font-size:19px;line-height:1.2;margin-top:4px;}
+  .brand .sub{font-size:11.5px;color:rgba(247,242,233,0.6);margin-top:8px;line-height:1.5;}
+  .nav-list{list-style:none;margin:28px 0 0;padding:0;}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;color:rgba(247,242,233,0.6);transition:all .2s;margin-bottom:4px;}
+  .nav-item:hover{background:rgba(255,255,255,0.06);color:#fff;}
+  .nav-item.active{background:var(--oro);color:var(--tinto);}
+  .nav-item .ico{font-size:16px;}
+  .side-footer{margin-top:28px;font-size:10.5px;color:rgba(247,242,233,0.3);line-height:1.6;}
+
+  .main{padding:30px 36px 70px;max-width:1280px;}
+  @media(max-width:880px){.main{padding:18px 16px 50px;}}
+  .menu-btn{display:none;}
+  @media(max-width:880px){.menu-btn{display:inline-flex;align-items:center;gap:8px;background:var(--tinto);color:#fff;border:none;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;margin-bottom:12px;}}
+  .view-eyebrow{font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--achiote-dark);font-weight:700;}
+  .view-title{font-size:28px;margin-top:6px;}
+  .view-intro{font-size:14px;color:#4A5568;line-height:1.6;margin-top:8px;max-width:760px;}
+
+  .card{background:var(--paper);border-radius:var(--radius);box-shadow:var(--shadow);padding:22px 24px;margin-top:20px;}
+  .card h3{font-size:16px;margin-bottom:4px;}
+  .card .card-sub{font-size:12.5px;color:#6B7787;margin-bottom:14px;}
+
+  /* KPI cards */
+  .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:18px;}
+  @media(max-width:980px){.kpi-grid{grid-template-columns:repeat(2,1fr);}}
+  @media(max-width:520px){.kpi-grid{grid-template-columns:1fr;}}
+  .kpi-card{background:#fff;border-radius:12px;padding:15px 17px;box-shadow:var(--shadow);border-top:5px solid var(--cafetal);}
+  .kpi-card.ok{border-top-color:var(--verde-ok);}
+  .kpi-card.warn{border-top-color:var(--amarillo);}
+  .kpi-card.bad{border-top-color:var(--rojo);}
+  .kpi-card .k{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:#8A95A6;font-weight:700;}
+  .kpi-card .v{font-family:'IBM Plex Mono',monospace;font-size:21px;font-weight:700;color:var(--tinto);margin-top:5px;}
+  .kpi-card .v.ok{color:var(--verde-ok);}
+  .kpi-card .v.warn{color:var(--amarillo);}
+  .kpi-card .v.bad{color:var(--rojo);}
+  .kpi-card .d{font-size:10.5px;color:#8A95A6;margin-top:3px;}
+
+  .semaforo-banner{border-radius:var(--radius);padding:18px 22px;margin-top:18px;display:flex;align-items:center;gap:14px;}
+  .semaforo-banner.ok{background:rgba(46,139,87,0.1);border:1.5px solid var(--verde-ok);}
+  .semaforo-banner.warn{background:rgba(212,160,23,0.12);border:1.5px solid var(--amarillo);}
+  .semaforo-banner.bad{background:rgba(192,57,43,0.1);border:1.5px solid var(--rojo);}
+  .semaforo-banner .icon{font-size:32px;}
+  .semaforo-banner .txt h4{font-size:15px;margin-bottom:3px;}
+  .semaforo-banner.ok .txt h4{color:var(--verde-ok);}
+  .semaforo-banner.warn .txt h4{color:var(--amarillo);}
+  .semaforo-banner.bad .txt h4{color:var(--rojo);}
+  .semaforo-banner .txt p{font-size:12.5px;color:#4A5568;margin:0;line-height:1.5;}
+
+  .chart-wrap{position:relative;height:280px;margin-top:14px;}
+  .chart-wrap.tall{height:380px;}
+  .chart-wrap.short{height:220px;}
+
+  /* Tables */
+  table.dtbl{width:100%;border-collapse:collapse;font-size:12.5px;}
+  table.dtbl th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:#8A95A6;font-weight:700;padding:9px 10px;border-bottom:2px solid var(--pergamino-2);position:sticky;top:0;background:#fff;}
+  table.dtbl td{padding:9px 10px;border-bottom:1px solid var(--pergamino-2);vertical-align:middle;}
+  table.dtbl tr:hover{background:var(--pergamino);}
+  table.dtbl td.num{font-family:'IBM Plex Mono',monospace;text-align:right;}
+  .sem-pill{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap;}
+  .sem-pill.ok{background:rgba(46,139,87,0.14);color:var(--verde-ok);}
+  .sem-pill.warn{background:rgba(212,160,23,0.16);color:#9c780f;}
+  .sem-pill.bad{background:rgba(192,57,43,0.14);color:var(--rojo);}
+
+  /* Filters */
+  .filter-bar{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;}
+  .filter-bar select{font-family:'Work Sans',sans-serif;font-size:12.5px;padding:8px 12px;border:1.5px solid #D7DEE8;border-radius:8px;background:var(--pergamino);color:var(--carbon);}
+
+  /* Quadrant map */
+  .quadrant-wrap{position:relative;height:460px;margin-top:16px;}
+
+  /* Recommendation cards */
+  .reco-grid{display:grid;grid-template-columns:1fr;gap:12px;margin-top:14px;}
+  .reco-card{display:flex;gap:14px;background:#fff;border-radius:12px;padding:14px 16px;box-shadow:var(--shadow);border-left:5px solid var(--cafetal);}
+  .reco-card.horizon-inmediato{border-left-color:var(--rojo);}
+  .reco-card.horizon-corto{border-left-color:var(--amarillo);}
+  .reco-card.horizon-mediano{border-left-color:var(--verde-ok);}
+  .reco-num{flex:0 0 auto;width:30px;height:30px;border-radius:50%;background:var(--tinto);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;font-family:'IBM Plex Mono',monospace;}
+  .reco-body h4{font-size:13.5px;color:var(--tinto);margin-bottom:3px;}
+  .reco-body p{font-size:12.5px;color:#4A5568;margin:0;line-height:1.5;}
+  .reco-body .meta{font-size:11px;color:#8A95A6;margin-top:5px;}
+
+  .lever-card{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);padding:18px 20px;margin-top:14px;}
+  .lever-card h4{font-size:14.5px;color:var(--tinto);margin-bottom:6px;}
+  .lever-card .imp{display:flex;gap:18px;margin-top:10px;flex-wrap:wrap;}
+  .lever-card .imp-item{font-size:12px;}
+  .lever-card .imp-item .lab{color:#8A95A6;display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;}
+  .lever-card .imp-item .val{font-weight:700;color:var(--tinto);font-family:'IBM Plex Mono',monospace;}
+
+  .timeline{position:relative;margin-top:18px;padding-left:24px;}
+  .timeline::before{content:'';position:absolute;left:7px;top:6px;bottom:6px;width:2px;background:var(--pergamino-2);}
+  .tl-item{position:relative;padding-bottom:22px;}
+  .tl-item::before{content:'';position:absolute;left:-24px;top:3px;width:14px;height:14px;border-radius:50%;background:var(--achiote);border:3px solid #fff;box-shadow:0 0 0 2px var(--achiote);}
+  .tl-item .period{font-size:11px;font-weight:700;color:var(--achiote-dark);text-transform:uppercase;letter-spacing:.05em;}
+  .tl-item h4{font-size:14px;color:var(--tinto);margin:3px 0 4px;}
+  .tl-item p{font-size:12.5px;color:#4A5568;margin:0;line-height:1.5;}
+  .tl-item .ev{font-size:11.5px;color:#8A95A6;margin-top:5px;font-style:italic;}
+
+  .insight-box{border-radius:var(--radius);padding:16px 20px;margin-top:14px;border-left:6px solid var(--achiote);background:rgba(244,183,49,0.08);}
+  .insight-box h4{font-size:13.5px;color:var(--tinto);margin-bottom:6px;}
+  .insight-box p{font-size:12.5px;color:#4A5568;margin:0;line-height:1.6;}
+
+  .export-bar{display:flex;gap:12px;margin-top:24px;flex-wrap:wrap;}
+  .btn{font-family:'Work Sans',sans-serif;font-weight:600;font-size:13.5px;padding:10px 22px;border-radius:10px;cursor:pointer;border:none;transition:all .12s;}
+  .btn-dark{background:var(--tinto);color:#fff;}
+  .btn-dark:hover{box-shadow:var(--shadow-lg);}
+  .btn-ghost{background:transparent;color:var(--tinto);border:1.5px solid #D7DEE8;}
+  .btn-ghost:hover{background:var(--pergamino-2);}
+
+  @media print{
+    .sidebar,.menu-btn,.export-bar,.filter-bar{display:none!important;}
+    .app-shell{grid-template-columns:1fr;}
+    .card,.kpi-card{box-shadow:none;border:1px solid #ddd;}
+  }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="eyebrow">Comfamiliar Risaralda · PMO</div>
+      <h1>Dashboard Ejecutivo</h1>
+      <div class="sub">Nivel 4 del Sistema PMO — Matriz Maestra, Optimización del Portafolio.</div>
+    </div>
+    <ul class="nav-list" id="navList"></ul>
+    <div style="margin-top:20px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.1);">
+      <button id="btnRecargar" onclick="cargarDesdeSheets()" style="width:100%;background:rgba(255,209,102,0.15);border:1px solid var(--oro);color:var(--oro);font-family:'Work Sans',sans-serif;font-weight:600;font-size:12px;padding:9px 12px;border-radius:8px;cursor:pointer;">🔄 Actualizar desde Sheets</button>
+    </div>
+    <div class="side-footer">Dashboard v1.0 · Entregables C + D<br>Consultoría Financiera PMO — Gustavo Andrés Ospina Agudelo</div>
+  </aside>
+
+  <main class="main">
+    <button class="menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">☰ Vistas</button>
+    <div id="viewHeader"></div>
+    <div id="viewContent"></div>
+  </main>
+</div>
+
+<script>
+/* ============================================================
+   DATOS DEL PORTAFOLIO — basados en Matriz Maestra PMO y Entregable D
+   ============================================================ */
+const proyectos = [
+  {cup:"CCF044-04-2026-001", nombre:"Ampliación Fondo de Crédito", area:"Financiero", tipo:"Programa Estratégico", lider:"Subdirector Financiero", bac:29500, pctFisico:0.65, pctPlaneado:0.70, ac:20000, scoreEstrategico:5.0, scoreSocial:4.5, scoreFinanciero:4.8, scoreRiesgo:3.5, scoreRegulatorio:5.0, cuadrante:"alto-alto"},
+  {cup:"CCF044-06-2026-002", nombre:"Compra La Enseñanza", area:"Servicios", tipo:"Infraestructura", lider:"Subdirector Servicios", bac:14922, pctFisico:0.90, pctPlaneado:0.90, ac:14000, scoreEstrategico:4.5, scoreSocial:4.0, scoreFinanciero:3.8, scoreRiesgo:3.0, scoreRegulatorio:4.5, cuadrante:"alto-alto"},
+  {cup:"CCF044-05-2026-003", nombre:"Parque Recreacional Tipo MAMI", area:"Servicios", tipo:"Infraestructura", lider:"Líder Proyecto Turismo", bac:6134, pctFisico:0.45, pctPlaneado:0.60, ac:3500, scoreEstrategico:3.5, scoreSocial:3.5, scoreFinanciero:4.0, scoreRiesgo:3.0, scoreRegulatorio:4.0, cuadrante:"alto-bajo"},
+  {cup:"CCF044-03-2026-004", nombre:"Dotación Servicios en Funcionamiento", area:"Servicios", tipo:"Gasto Recurrente", lider:"Coordinador Servicios", bac:10292, pctFisico:0.80, pctPlaneado:0.80, ac:9000, scoreEstrategico:2.5, scoreSocial:2.5, scoreFinanciero:2.0, scoreRiesgo:4.5, scoreRegulatorio:3.5, cuadrante:"bajo-alto"},
+  {cup:"CCF044-02-2026-005", nombre:"Modernización Tecnológica PMO", area:"Administración", tipo:"Transversal", lider:"Coordinador PMO", bac:2500, pctFisico:0.30, pctPlaneado:0.50, ac:900, scoreEstrategico:4.0, scoreSocial:3.0, scoreFinanciero:3.5, scoreRiesgo:4.0, scoreRegulatorio:4.5, cuadrante:"alto-bajo"},
+  {cup:"CCF044-01-2026-006", nombre:"Sede Quinchía — Construcción", area:"Educación", tipo:"Infraestructura", lider:"Líder Proyectos Edu", bac:3200, pctFisico:0.55, pctPlaneado:0.55, ac:1850, scoreEstrategico:3.5, scoreSocial:4.0, scoreFinanciero:3.0, scoreRiesgo:3.5, scoreRegulatorio:4.0, cuadrante:"alto-bajo"},
+  {cup:"CCF044-07-2026-007", nombre:"Remodelación Cabañas Consotá", area:"Turismo", tipo:"Infraestructura", lider:"Coordinador Turismo", bac:1800, pctFisico:0.40, pctPlaneado:0.50, ac:820, scoreEstrategico:3.5, scoreSocial:3.5, scoreFinanciero:4.0, scoreRiesgo:3.0, scoreRegulatorio:4.0, cuadrante:"alto-bajo"},
+  {cup:"CCF044-08-2026-008", nombre:"Reforzamiento Estructural Clínica", area:"Salud", tipo:"Infraestructura", lider:"Subdirector Salud", bac:4500, pctFisico:0.70, pctPlaneado:0.65, ac:3300, scoreEstrategico:4.0, scoreSocial:5.0, scoreFinanciero:3.0, scoreRiesgo:3.5, scoreRegulatorio:5.0, cuadrante:"alto-bajo"},
+];
+
+// Cálculo automático de KPIs EVM por proyecto (igual fórmulas que Matriz Maestra)
+function calcKPIs(p){
+  const ev = p.pctFisico*p.bac;
+  const pv = p.pctPlaneado*p.bac;
+  const cpi = p.ac>0 ? ev/p.ac : null;
+  const spi = pv>0 ? ev/pv : null;
+  const delta = (cpi!==null && spi!==null) ? Math.abs(spi-cpi) : null;
+  const eac = cpi!==null && cpi>0 ? p.ac + (p.bac-ev)/cpi : null;
+  const vac = eac!==null ? p.bac-eac : null;
+  let sem, semCls;
+  if(delta===null){ sem='Sin datos'; semCls='warn'; }
+  else if(delta<=0.07){ sem='🟢 VERDE'; semCls='ok'; }
+  else if(delta<=0.14){ sem='🟡 AMARILLO'; semCls='warn'; }
+  else { sem='🔴 ROJO'; semCls='bad'; }
+  const scoreTotal = (p.scoreEstrategico*0.30 + p.scoreSocial*0.20 + p.scoreFinanciero*0.20 + p.scoreRiesgo*0.15 + p.scoreRegulatorio*0.15);
+  return {...p, ev, pv, cpi, spi, delta, eac, vac, sem, semCls, scoreTotal};
+}
+const portfolio = proyectos.map(calcKPIs);
+
+function fmtCOP(n){ if(n===null||n===undefined||isNaN(n)) return '—'; const s=n<0?'-':''; return s+'$'+Math.round(Math.abs(n)).toLocaleString('es-CO')+' MM'; }
+function fmtPct(n,d=1){ if(n===null||n===undefined||isNaN(n)) return 'N/D'; return (n*100).toFixed(d)+'%'; }
+function fmtIdx(n){ if(n===null||n===undefined||isNaN(n)) return 'N/D'; return n.toFixed(2); }
+
+/* ============================================================
+   NAVEGACIÓN — 4 VISTAS
+   ============================================================ */
+const VIEWS = [
+  {k:'resumen', t:'Resumen Ejecutivo', ico:'📊', d:'KPIs del portafolio completo'},
+  {k:'detalle', t:'Detalle por Proyecto', ico:'📁', d:'Matriz Maestra completa'},
+  {k:'cuadrantes', t:'Mapa de Cuadrantes', ico:'🎯', d:'Impacto vs. Inversión'},
+  {k:'optimizacion', t:'Optimización del Portafolio', ico:'⚙️', d:'Recomendaciones y hoja de ruta'}
+];
+let currentView = 'resumen';
+
+function renderNav(){
+  document.getElementById('navList').innerHTML = VIEWS.map(v=>`
+    <li class="nav-item ${v.k===currentView?'active':''}" onclick="goView('${v.k}')">
+      <span class="ico">${v.ico}</span><span>${v.t}</span>
+    </li>
+  `).join('');
+}
+function goView(k){
+  currentView = k;
+  renderNav();
+  const v = VIEWS.find(x=>x.k===k);
+  document.getElementById('viewHeader').innerHTML = `
+    <div class="view-eyebrow">${v.d}</div>
+    <h2 class="view-title">${v.t}</h2>
+  `;
+  const el = document.getElementById('viewContent');
+  if(k==='resumen') el.innerHTML = renderResumen();
+  else if(k==='detalle') el.innerHTML = renderDetalle();
+  else if(k==='cuadrantes') el.innerHTML = renderCuadrantesShell();
+  else if(k==='optimizacion') el.innerHTML = renderOptimizacion();
+  if(k==='resumen') setTimeout(renderResumenCharts, 30);
+  if(k==='detalle') setTimeout(()=>{ renderTablaDetalle(); renderTopBottom(); }, 30);
+  if(k==='cuadrantes') setTimeout(renderCuadranteChart, 30);
+  document.getElementById('sidebar').classList.remove('open');
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+/* ============================================================
+   VISTA 1 — RESUMEN EJECUTIVO
+   ============================================================ */
+function renderResumen(){
+  const bacTotal = portfolio.reduce((a,p)=>a+p.bac,0);
+  const acTotal = portfolio.reduce((a,p)=>a+p.ac,0);
+  const cpiValues = portfolio.filter(p=>p.cpi!==null).map(p=>p.cpi);
+  const spiValues = portfolio.filter(p=>p.spi!==null).map(p=>p.spi);
+  const deltaValues = portfolio.filter(p=>p.delta!==null).map(p=>p.delta);
+  const cpiProm = cpiValues.reduce((a,v)=>a+v,0)/cpiValues.length;
+  const spiProm = spiValues.reduce((a,v)=>a+v,0)/spiValues.length;
+  const deltaProm = deltaValues.reduce((a,v)=>a+v,0)/deltaValues.length;
+  const pctEjec = acTotal/bacTotal;
+  const vacNegativo = portfolio.filter(p=>p.vac<0).reduce((a,p)=>a+p.vac,0);
+  const rojos = portfolio.filter(p=>p.semCls==='bad').length;
+  const amarillos = portfolio.filter(p=>p.semCls==='warn').length;
+  const verdes = portfolio.filter(p=>p.semCls==='ok').length;
+
+  let semGen, semGenCls, semGenTxt;
+  if(deltaProm<=0.07){ semGen='🟢 PORTAFOLIO EN CONTROL'; semGenCls='ok'; semGenTxt='Sin intervención requerida a nivel de portafolio.'; }
+  else if(deltaProm<=0.14){ semGen='🟡 PORTAFOLIO EN ALERTA'; semGenCls='warn'; semGenTxt='Revisar proyectos en zona amarilla en el próximo Comité.'; }
+  else { semGen='🔴 PORTAFOLIO EN RIESGO'; semGenCls='bad'; semGenTxt='Intervención directiva requerida. Múltiples proyectos con desviación crítica.'; }
+
+  return `
+  <div class="semaforo-banner ${semGenCls}">
+    <div class="icon">${semGenCls==='ok'?'✅':semGenCls==='warn'?'⚠️':'🚨'}</div>
+    <div class="txt"><h4>${semGen}</h4><p>${semGenTxt} Delta de Control promedio: ${fmtPct(deltaProm)}.</p></div>
+  </div>
+
+  <div class="kpi-grid">
+    <div class="kpi-card ${cpiProm>=1?'ok':cpiProm>=0.85?'warn':'bad'}">
+      <div class="k">CPI Promedio Portafolio</div>
+      <div class="v ${cpiProm>=1?'ok':cpiProm>=0.85?'warn':'bad'}">${fmtIdx(cpiProm)}</div>
+      <div class="d">Meta ≥ 1.00</div>
+    </div>
+    <div class="kpi-card ${spiProm>=1?'ok':spiProm>=0.85?'warn':'bad'}">
+      <div class="k">SPI Promedio Portafolio</div>
+      <div class="v ${spiProm>=1?'ok':spiProm>=0.85?'warn':'bad'}">${fmtIdx(spiProm)}</div>
+      <div class="d">Meta ≥ 1.00</div>
+    </div>
+    <div class="kpi-card">
+      <div class="k">Presupuesto Total (BAC)</div>
+      <div class="v">${fmtCOP(bacTotal)}</div>
+      <div class="d">${portfolio.length} proyectos activos</div>
+    </div>
+    <div class="kpi-card">
+      <div class="k">% Ejecución Presupuestal</div>
+      <div class="v">${fmtPct(pctEjec)}</div>
+      <div class="d">${fmtCOP(acTotal)} ejecutados</div>
+    </div>
+    <div class="kpi-card bad">
+      <div class="k">Proyectos Zona Roja</div>
+      <div class="v bad">${rojos}</div>
+      <div class="d">Delta > 15% — requieren intervención</div>
+    </div>
+    <div class="kpi-card warn">
+      <div class="k">Proyectos Zona Amarilla</div>
+      <div class="v warn">${amarillos}</div>
+      <div class="d">Delta 8-14% — en seguimiento</div>
+    </div>
+    <div class="kpi-card ok">
+      <div class="k">Proyectos Zona Verde</div>
+      <div class="v ok">${verdes}</div>
+      <div class="d">Desempeño normal</div>
+    </div>
+    <div class="kpi-card ${vacNegativo<0?'bad':'ok'}">
+      <div class="k">Valor en Riesgo (VAC negativo)</div>
+      <div class="v ${vacNegativo<0?'bad':'ok'}">${fmtCOP(vacNegativo)}</div>
+      <div class="d">Suma de sobrecostos proyectados</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Distribución del portafolio por semáforo</h3>
+    <div class="chart-wrap short"><canvas id="chartDonut"></canvas></div>
+  </div>
+
+  <div class="card">
+    <h3>CPI por proyecto — comparativo</h3>
+    <div class="card-sub">Línea de meta en 1.00. Por debajo de 0.85 indica alerta roja.</div>
+    <div class="chart-wrap"><canvas id="chartCPIBar"></canvas></div>
+  </div>
+
+  <div class="insight-box">
+    <h4>💡 Hallazgo destacado del diagnóstico</h4>
+    <p>El CPI consolidado histórico del portafolio (2021-2025) es de <strong>0.82</strong> — equivalente a una pérdida de $180.000 por cada millón invertido. Con este corte, el CPI promedio actual es de <strong>${fmtIdx(cpiProm)}</strong>, lo que ${cpiProm>0.82?'representa una mejora frente al histórico':'sigue en línea con el patrón histórico de subejecución'}.</p>
+  </div>
+  `;
+}
+
+function renderResumenCharts(){
+  const rojos = portfolio.filter(p=>p.semCls==='bad').length;
+  const amarillos = portfolio.filter(p=>p.semCls==='warn').length;
+  const verdes = portfolio.filter(p=>p.semCls==='ok').length;
+
+  const ctxDonut = document.getElementById('chartDonut');
+  if(ctxDonut){
+    new Chart(ctxDonut, {
+      type:'doughnut',
+      data:{ labels:['Verde','Amarillo','Rojo'], datasets:[{ data:[verdes,amarillos,rojos], backgroundColor:['#2E8B57','#D4A017','#C0392B'] }] },
+      options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom'}} }
+    });
+  }
+
+  const ctxBar = document.getElementById('chartCPIBar');
+  if(ctxBar){
+    new Chart(ctxBar, {
+      type:'bar',
+      data:{
+        labels: portfolio.map(p=>p.nombre.length>22?p.nombre.slice(0,22)+'…':p.nombre),
+        datasets:[{ label:'CPI', data: portfolio.map(p=>p.cpi), backgroundColor: portfolio.map(p=>p.semCls==='ok'?'#2E8B57':p.semCls==='warn'?'#D4A017':'#C0392B'), borderRadius:6 }]
+      },
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        plugins:{legend:{display:false}},
+        scales:{ y:{ beginAtZero:true, suggestedMax:1.3, grid:{color:'#E1E6ED'} }, x:{ grid:{display:false}, ticks:{font:{size:10}} } }
+      }
+    });
+  }
+}
+
+/* ============================================================
+   VISTA 2 — DETALLE POR PROYECTO
+   ============================================================ */
+let filtroArea = '', filtroSem = '';
+function renderDetalle(){
+  const areas = [...new Set(portfolio.map(p=>p.area))];
+  return `
+  <div class="card">
+    <h3>Matriz Maestra del Portafolio</h3>
+    <div class="card-sub">Estado financiero de cada proyecto activo. Cálculos automáticos desde el Formulario P-03.</div>
+    <div class="filter-bar">
+      <select id="selArea" onchange="filtroArea=this.value; renderTablaDetalle()">
+        <option value="">Todas las áreas</option>
+        ${areas.map(a=>`<option value="${a}">${a}</option>`).join('')}
+      </select>
+      <select id="selSem" onchange="filtroSem=this.value; renderTablaDetalle()">
+        <option value="">Todos los semáforos</option>
+        <option value="ok">🟢 Verde</option>
+        <option value="warn">🟡 Amarillo</option>
+        <option value="bad">🔴 Rojo</option>
+      </select>
+    </div>
+    <div style="overflow-x:auto; margin-top:14px;">
+      <table class="dtbl" id="tablaDetalle"></table>
+    </div>
+  </div>
+  <div class="card">
+    <h3>Top 5 mejor desempeño (CPI)</h3>
+    <div style="overflow-x:auto"><table class="dtbl" id="tablaTop"></table></div>
+  </div>
+  <div class="card">
+    <h3>Bottom 5 — requieren atención (CPI)</h3>
+    <div style="overflow-x:auto"><table class="dtbl" id="tablaBottom"></table></div>
+  </div>
+  `;
+}
+function renderTablaDetalle(){
+  const tbl = document.getElementById('tablaDetalle');
+  if(!tbl) return;
+  let filtered = portfolio;
+  if(filtroArea) filtered = filtered.filter(p=>p.area===filtroArea);
+  if(filtroSem) filtered = filtered.filter(p=>p.semCls===filtroSem);
+  tbl.innerHTML = `
+    <thead><tr>
+      <th>CUP</th><th>Proyecto</th><th>Área</th><th>BAC</th><th>% Físico</th><th>CPI</th><th>SPI</th><th>Delta</th><th>Semáforo</th><th>VAC</th>
+    </tr></thead>
+    <tbody>
+      ${filtered.map(p=>`<tr>
+        <td class="mono" style="font-size:11px">${p.cup}</td>
+        <td>${p.nombre}</td>
+        <td>${p.area}</td>
+        <td class="num">${fmtCOP(p.bac)}</td>
+        <td class="num">${fmtPct(p.pctFisico)}</td>
+        <td class="num">${fmtIdx(p.cpi)}</td>
+        <td class="num">${fmtIdx(p.spi)}</td>
+        <td class="num">${fmtPct(p.delta)}</td>
+        <td><span class="sem-pill ${p.semCls}">${p.sem}</span></td>
+        <td class="num">${fmtCOP(p.vac)}</td>
+      </tr>`).join('')}
+    </tbody>
+  `;
+}
+function renderTopBottom(){
+  const sorted = [...portfolio].filter(p=>p.cpi!==null).sort((a,b)=>b.cpi-a.cpi);
+  const top5 = sorted.slice(0,5);
+  const bottom5 = sorted.slice(-5).reverse();
+  function rows(arr){
+    return arr.map(p=>`<tr>
+      <td>${p.nombre}</td><td>${p.area}</td>
+      <td class="num">${fmtIdx(p.cpi)}</td>
+      <td class="num">${fmtIdx(p.spi)}</td>
+      <td><span class="sem-pill ${p.semCls}">${p.sem}</span></td>
+    </tr>`).join('');
+  }
+  const head = `<thead><tr><th>Proyecto</th><th>Área</th><th>CPI</th><th>SPI</th><th>Semáforo</th></tr></thead>`;
+  const t1 = document.getElementById('tablaTop'); if(t1) t1.innerHTML = head+`<tbody>${rows(top5)}</tbody>`;
+  const t2 = document.getElementById('tablaBottom'); if(t2) t2.innerHTML = head+`<tbody>${rows(bottom5)}</tbody>`;
+}
+
+/* ============================================================
+   VISTA 3 — MAPA DE CUADRANTES (Impacto vs. Inversión)
+   ============================================================ */
+let chartCuadrante = null;
+function renderCuadrantesShell(){
+  return `
+  <div class="card">
+    <h3>Mapa Impacto–Inversión — Cuatro Cuadrantes Estratégicos</h3>
+    <div class="card-sub">Eje Y: Score de impacto estratégico (1-5, ponderado). Eje X: Volumen de inversión (BAC, COP MM). El tamaño de la burbuja representa el BAC.</div>
+    <div class="quadrant-wrap"><canvas id="chartQuad"></canvas></div>
+  </div>
+  <div class="card">
+    <h3>Política de gobernanza por cuadrante</h3>
+    <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:14px; margin-top:10px;">
+      <div class="lever-card" style="border-left:5px solid #2E8B57;">
+        <h4>★ Alto Impacto / Alta Inversión — Proyectos Estratégicos</h4>
+        <p style="font-size:12.5px;color:#4A5568;margin:0;">Gobernanza Comité Nivel 1. Control intensivo y seguimiento mensual.</p>
+      </div>
+      <div class="lever-card" style="border-left:5px solid #6FA8D8;">
+        <h4>✓ Alto Impacto / Baja Inversión — Quick Wins</h4>
+        <p style="font-size:12.5px;color:#4A5568;margin:0;">Máxima eficiencia. Prioridad inmediata de ejecución.</p>
+      </div>
+      <div class="lever-card" style="border-left:5px solid #D4A017;">
+        <h4>⚠ Bajo Impacto / Alta Inversión — Revisar o Reclasificar</h4>
+        <p style="font-size:12.5px;color:#4A5568;margin:0;">Evaluar rediseño. Cuestionar permanencia como CAPEX — candidato a OPEX.</p>
+      </div>
+      <div class="lever-card" style="border-left:5px solid #8A95A6;">
+        <h4>— Bajo Impacto / Baja Inversión — Operación Menor</h4>
+        <p style="font-size:12.5px;color:#4A5568;margin:0;">Gestión simplificada. Sin necesidad de PMO plena.</p>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <h3>Top 10 proyectos críticos del portafolio histórico</h3>
+    <div class="card-sub">Estos proyectos determinan el 80.9% del desempeño financiero institucional (Entregable D).</div>
+    <div style="overflow-x:auto"><table class="dtbl">
+      <thead><tr><th>Código</th><th>Iniciativa</th><th>Inversión</th><th>% Total</th><th>Cuadrante</th></tr></thead>
+      <tbody>
+        <tr><td class="mono" style="font-size:11px">CCF044-04-00026</td><td>Ampliación Fondo de Crédito</td><td class="num">$29.500 MM</td><td class="num">15.2%</td><td><span class="sem-pill ok">★ Alto/Alta</span></td></tr>
+        <tr><td class="mono" style="font-size:11px">CCF044-04-00028</td><td>Ampliación Fondo de Crédito</td><td class="num">$26.000 MM</td><td class="num">13.4%</td><td><span class="sem-pill ok">★ Alto/Alta</span></td></tr>
+        <tr><td class="mono" style="font-size:11px">CCF044-04-00027</td><td>Ampliación Fondo de Crédito</td><td class="num">$16.800 MM</td><td class="num">8.7%</td><td><span class="sem-pill ok">★ Alto/Alta</span></td></tr>
+        <tr><td class="mono" style="font-size:11px">CCF044-04-00025</td><td>Ampliación Fondo de Crédito</td><td class="num">$15.500 MM</td><td class="num">8.0%</td><td><span class="sem-pill ok">★ Alto/Alta</span></td></tr>
+        <tr><td class="mono" style="font-size:11px">CCF044-06-00034</td><td>Compra La Enseñanza</td><td class="num">$14.922 MM</td><td class="num">7.7%</td><td><span class="sem-pill ok">★ Alto/Alta</span></td></tr>
+        <tr><td class="mono" style="font-size:11px">CCF044-03-00029</td><td>Dotación Servicios Funcionamiento</td><td class="num">$10.292 MM</td><td class="num">5.3%</td><td><span class="sem-pill warn">⚠ Bajo/Alta</span></td></tr>
+        <tr><td class="mono" style="font-size:11px">CCF044-03-00028</td><td>Dotación Servicios Funcionamiento</td><td class="num">$9.511 MM</td><td class="num">4.9%</td><td><span class="sem-pill warn">⚠ Bajo/Alta</span></td></tr>
+        <tr><td class="mono" style="font-size:11px">CCF044-03-00030</td><td>Dotación de Servicios</td><td class="num">$8.722 MM</td><td class="num">4.5%</td><td><span class="sem-pill warn">⚠ Bajo/Alta</span></td></tr>
+        <tr><td class="mono" style="font-size:11px">CCF044-03-00031</td><td>Dotación de Servicios</td><td class="num">$7.331 MM</td><td class="num">3.8%</td><td><span class="sem-pill warn">⚠ Bajo/Alta</span></td></tr>
+        <tr><td class="mono" style="font-size:11px">CCF044-05-00040</td><td>Proyecto Construcción Tipo MAMI</td><td class="num">$6.134 MM</td><td class="num">3.2%</td><td><span class="sem-pill ok">✓ Alto/Baja</span></td></tr>
+      </tbody>
+    </table></div>
+  </div>
+  <div class="insight-box">
+    <h4>💡 Hallazgo sobre las Dotaciones de Servicios</h4>
+    <p>Los proyectos CCF044-03-* suman $35.857 millones (18.5% del portafolio histórico) y se ubican en el cuadrante Bajo Impacto / Alta Inversión. Son necesarios para la continuidad operativa, pero no generan valor estratégico incremental. <strong>Recomendación: reclasificarlos como OPEX</strong> con control por centros de costo, liberando esos recursos de atención PMO para iniciativas transformacionales.</p>
+  </div>
+  `;
+}
+function renderCuadranteChart(){
+  const ctx = document.getElementById('chartQuad');
+  if(!ctx) return;
+  if(chartCuadrante) chartCuadrante.destroy();
+  const colorFor = (c)=> c==='alto-alto'?'#2E8B57' : c==='alto-bajo'?'#6FA8D8' : c==='bajo-alto'?'#D4A017' : '#8A95A6';
+  chartCuadrante = new Chart(ctx, {
+    type:'bubble',
+    data:{
+      datasets: portfolio.map(p=>({
+        label: p.nombre,
+        data: [{ x:p.bac, y:p.scoreTotal, r: Math.max(8, Math.sqrt(p.bac)/8) }],
+        backgroundColor: colorFor(p.cuadrante)+'CC',
+        borderColor: colorFor(p.cuadrante),
+        borderWidth: 1.5
+      }))
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{ callbacks:{ label:(ctx)=> ctx.dataset.label+': Score '+ctx.raw.y.toFixed(1)+' · '+fmtCOP(ctx.raw.x) } }
+      },
+      scales:{
+        x:{ title:{display:true,text:'Inversión (BAC, COP MM)'}, grid:{color:'#E1E6ED'} },
+        y:{ title:{display:true,text:'Score de Impacto Estratégico (1-5)'}, min:0, max:5.5, grid:{color:'#E1E6ED'} }
+      }
+    }
+  });
+}
+
+/* ============================================================
+   VISTA 4 — OPTIMIZACIÓN DEL PORTAFOLIO
+   ============================================================ */
+function renderOptimizacion(){
+  return `
+  <div class="card">
+    <h3>Resumen ejecutivo — Indicadores clave de optimización</h3>
+    <table class="dtbl">
+      <thead><tr><th>Indicador</th><th>Situación actual</th><th>Meta propuesta</th><th>Impacto esperado</th></tr></thead>
+      <tbody>
+        <tr><td>CPI Portafolio Consolidado</td><td class="num">0.82</td><td class="num">≥ 0.95 en 18 meses</td><td>~$5.200 MM valor adicional anual</td></tr>
+        <tr><td>Concentración Portafolio</td><td class="num">83.7% en Servicios</td><td class="num">Máx. 65% en una sola área</td><td>Diversificación del riesgo estratégico</td></tr>
+        <tr><td>Proyectos sin Hitos de Valor</td><td class="num">45%</td><td class="num">0% en 90 días</td><td>Control real de entrega vs. pago</td></tr>
+        <tr><td>Proyectos sin Código Único (CUP)</td><td class="num">32%</td><td class="num">0% — obligatorio</td><td>Trazabilidad completa del portafolio</td></tr>
+        <tr><td>Madurez PMO</td><td class="num">1.2 / 5.0</td><td class="num">≥ 3.0 en 24 meses</td><td>PMO funcional con gobernanza consolidada</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="insight-box">
+    <h4>💡 Mensaje central</h4>
+    <p>Comfamiliar Risaralda no tiene un problema de recursos — tiene una <strong>oportunidad de eficiencia</strong>. Con el sistema PMO propuesto, la institución puede generar entre <strong>$4.000 y $8.000 millones de pesos de valor adicional anual</strong>, simplemente mejorando la calidad del control sobre las inversiones que ya realiza.</p>
+  </div>
+
+  <div class="card">
+    <h3>Tres palancas de optimización</h3>
+    <div class="lever-card">
+      <h4>Palanca 1 — Reclasificación CAPEX / OPEX</h4>
+      <p style="font-size:12.5px;color:#4A5568;margin:0;">39 iniciativas de dotación y mantenimiento pasan a presupuesto operativo por centros de costo.</p>
+      <div class="imp">
+        <div class="imp-item"><span class="lab">Impacto CPI</span><span class="val">+0.06 pts</span></div>
+        <div class="imp-item"><span class="lab">Liberación capacidad PMO</span><span class="val">~30%</span></div>
+      </div>
+    </div>
+    <div class="lever-card">
+      <h4>Palanca 2 — Concentración de seguimiento en proyectos críticos</h4>
+      <p style="font-size:12.5px;color:#4A5568;margin:0;">Umbral mínimo PMO plena: $500M. Solo proyectos &gt;$500M reciben seguimiento completo con EVM y Hitos de Valor.</p>
+      <div class="imp">
+        <div class="imp-item"><span class="lab">Proyectos bajo PMO plena</span><span class="val">85 → 20-25</span></div>
+        <div class="imp-item"><span class="lab">Precisión de indicadores</span><span class="val">↑ Mayor</span></div>
+      </div>
+    </div>
+    <div class="lever-card">
+      <h4>Palanca 3 — Diversificación estratégica 2026-2030</h4>
+      <p style="font-size:12.5px;color:#4A5568;margin:0;">Reducir concentración del Programa Financiero del 52.6% al 45-50%, ampliando Salud (3.3%→8-10%) y Transformación Digital (5.1%→8-10%).</p>
+      <div class="imp">
+        <div class="imp-item"><span class="lab">Riesgo de correlación</span><span class="val">↓ Reducido</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Hoja de ruta de implementación</h3>
+    <div class="timeline">
+      <div class="tl-item"><div class="period">Mes 1</div><h4>Activación del sistema base</h4><p>CUP para 100% del portafolio. Primer P-03 diligenciado. Capacitación a líderes.</p><div class="ev">Evidencia: Matriz Maestra poblada · Dashboard v1 operativo</div></div>
+      <div class="tl-item"><div class="period">Mes 2</div><h4>Primer ciclo de seguimiento completo</h4><p>Todos los proyectos activos con P-03 actualizado. Primera sesión Comité Nivel 2.</p><div class="ev">Evidencia: Acta Comité Nivel 2 · Primer informe de portafolio</div></div>
+      <div class="tl-item"><div class="period">Mes 3</div><h4>Gobernanza formalizada</h4><p>Comité Nivel 1 con reglamento. Stage-Gating activo para nuevos proyectos.</p><div class="ev">Evidencia: Reglamento del Comité</div></div>
+      <div class="tl-item"><div class="period">Mes 4-6</div><h4>Optimización del portafolio actual</h4><p>Revisión cuadrante Bajo Impacto/Alta Inversión. Decisiones de reclasificación OPEX.</p><div class="ev">Evidencia: Informe de decisiones de portafolio</div></div>
+      <div class="tl-item"><div class="period">Mes 6</div><h4>Evaluación de madurez PMO</h4><p>Aplicación del modelo 8 dominios PMBOK. Línea base actualizada.</p><div class="ev">Evidencia: Informe de madurez · Meta 2.5/5</div></div>
+      <div class="tl-item"><div class="period">Mes 7-12</div><h4>Consolidación y Power BI</h4><p>Conexión Dashboard a Power BI. Automatización de alertas. Segundo ciclo anual.</p><div class="ev">Evidencia: Dashboard Power BI activo · CPI en tendencia alcista</div></div>
+      <div class="tl-item"><div class="period">Mes 13-24</div><h4>Madurez y beneficios realizados</h4><p>Gestión de beneficios activa. Alineación con presupuesto multianual 2027.</p><div class="ev">Meta: CPI ≥ 0.90 · Madurez PMO ≥ 3.0/5</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Top 5 recomendaciones — Horizonte inmediato (90 días)</h3>
+    <div class="reco-grid">
+      <div class="reco-card horizon-inmediato"><div class="reco-num">1</div><div class="reco-body"><h4>Activar CUP para 100% del portafolio activo</h4><p>Asignar Código Único a todos los proyectos sin código (32% del portafolio).</p><div class="meta">Responsable: PMO · Impacto: Trazabilidad inmediata</div></div></div>
+      <div class="reco-card horizon-inmediato"><div class="reco-num">2</div><div class="reco-body"><h4>Definir Hitos de Valor para proyectos en ejecución</h4><p>Reunión de 1 hora por proyecto con líder para definir hitos donde no existen (45%).</p><div class="meta">Responsable: PMO + Líderes · Impacto: Control real de avance físico</div></div></div>
+      <div class="reco-card horizon-inmediato"><div class="reco-num">3</div><div class="reco-body"><h4>Primer ciclo Formulario P-03</h4><p>Diligenciar seguimiento de todos los proyectos activos con datos del último corte disponible.</p><div class="meta">Responsable: Líderes de Proyecto · Impacto: Primer dashboard ejecutivo real</div></div></div>
+      <div class="reco-card horizon-inmediato"><div class="reco-num">4</div><div class="reco-body"><h4>Reclasificar Dotaciones como OPEX</h4><p>Iniciar proceso con Subdirección Financiera para migrar dotaciones a presupuesto operativo.</p><div class="meta">Responsable: PMO + Financiero · Impacto: Libera $35.857 MM de atención PMO</div></div></div>
+      <div class="reco-card horizon-inmediato"><div class="reco-num">5</div><div class="reco-body"><h4>Capacitación en Wizard PMO</h4><p>Taller de 2 horas para líderes de área en el nuevo formulario de formulación guiado.</p><div class="meta">Responsable: PMO · Impacto: Adopción institucional del sistema</div></div></div>
+    </div>
+  </div>
+
+  <div class="export-bar">
+    <button class="btn btn-dark" onclick="window.print()">📄 Exportar a PDF</button>
+  </div>
+  `;
+}
+
+/* ============================================================
+   INIT — Nivel 4 con carga desde Google Sheets
+   ============================================================ */
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzNDGOavQQjfOCCVj3gnrZ5lViq0ybAAUi_E1q-StAS0z3RH7EtEqlmRMQ-v9_ArK-n/exec';
+
+function cargarDesdeSheets(){
+  const btn = document.getElementById('btnRecargar');
+  if(btn){ btn.textContent='⏳ Cargando...'; btn.disabled=true; }
+  fetch(SCRIPT_URL+'?hoja=Nivel3_Seguimiento', {method:'GET', mode:'no-cors'})
+    .then(()=>{
+      // no-cors no permite leer respuesta; mostrar mensaje
+      if(btn){ btn.textContent='🔄 Actualizar desde Sheets'; btn.disabled=false; }
+      alert('ℹ️ Nota técnica: La actualización automática requiere que el administrador configure el script como "Cualquier persona" en Google Apps Script.\n\nMientras tanto, el Dashboard muestra los datos de ejemplo cargados. Los datos reales llegarán cuando el equipo de sistemas finalice la configuración.');
+    }).catch(()=>{
+      if(btn){ btn.textContent='🔄 Actualizar desde Sheets'; btn.disabled=false; }
+    });
+}
+
+renderNav();
+goView('resumen');
+</script>
+</body>
+</html>

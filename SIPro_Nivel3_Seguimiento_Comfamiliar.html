@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Formulario de Seguimiento P-03 — Comfamiliar Risaralda</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --tinto:#1B3A5F;
+    --tinto-light:#2F5C8C;
+    --achiote:#F4B731;
+    --achiote-dark:#B8860B;
+    --pergamino:#F4F6F9;
+    --pergamino-2:#E1E6ED;
+    --cafetal:#6FA8D8;
+    --oro:#FFD166;
+    --carbon:#1F2933;
+    --rojo:#C0392B;
+    --verde-ok:#2E8B57;
+    --amarillo:#D4A017;
+    --gris:#7C8896;
+    --paper:#FFFFFF;
+    --shadow:0 4px 16px rgba(31,41,51,0.08);
+    --shadow-lg:0 12px 32px rgba(31,41,51,0.14);
+    --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{font-family:'Work Sans',sans-serif;background:var(--pergamino);color:var(--carbon);-webkit-font-smoothing:antialiased;}
+  h1,h2,h3,h4{font-family:'Fraunces',serif;color:var(--tinto);margin:0;letter-spacing:-0.01em;}
+  .mono{font-family:'IBM Plex Mono',monospace;}
+
+  .app-shell{display:grid;grid-template-columns:260px 1fr;min-height:100vh;}
+  @media(max-width:880px){.app-shell{grid-template-columns:1fr;}.sidebar{display:none;}.sidebar.open{display:block;position:fixed;z-index:50;inset:0;width:100%;}}
+
+  .sidebar{background:var(--tinto);color:var(--pergamino);padding:28px 22px;position:sticky;top:0;height:100vh;overflow-y:auto;}
+  .brand .eyebrow{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--achiote);font-weight:600;}
+  .brand h1{color:#fff;font-size:20px;line-height:1.2;margin-top:4px;}
+  .brand .sub{font-size:12px;color:rgba(247,242,233,0.6);margin-top:8px;line-height:1.5;}
+  .path-wrap{margin-top:28px;position:relative;}
+  .path-svg{position:absolute;left:17px;top:6px;width:4px;height:calc(100% - 12px);}
+  .path-line-bg{fill:none;stroke:rgba(247,242,233,0.15);stroke-width:3;}
+  .path-line-fg{fill:none;stroke:var(--achiote);stroke-width:3;transition:stroke-dasharray .5s ease;}
+  .stations{position:relative;z-index:2;list-style:none;margin:0;padding:0;}
+  .station{display:flex;align-items:flex-start;gap:12px;padding:8px 6px;border-radius:10px;cursor:pointer;transition:background .2s;margin-bottom:2px;}
+  .station:hover{background:rgba(255,255,255,0.06);}
+  .station .dot{flex:0 0 auto;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;border:2px solid rgba(247,242,233,0.25);color:rgba(247,242,233,0.5);background:var(--tinto);transition:all .25s;}
+  .station.done .dot{background:var(--achiote);border-color:var(--achiote);color:var(--tinto);}
+  .station.active .dot{background:var(--oro);border-color:var(--oro);color:var(--tinto);transform:scale(1.1);box-shadow:0 0 0 5px rgba(255,209,102,0.18);}
+  .station .label{padding-top:5px;}
+  .station .label .t{font-size:12.5px;font-weight:600;color:rgba(247,242,233,0.5);}
+  .station.active .label .t,.station.done .label .t{color:#fff;}
+  .station .label .d{font-size:11px;color:rgba(247,242,233,0.35);margin-top:1px;}
+  .side-footer{margin-top:28px;font-size:10.5px;color:rgba(247,242,233,0.3);line-height:1.6;}
+
+  .main{padding:32px 40px 80px;max-width:960px;}
+  @media(max-width:880px){.main{padding:20px 16px 60px;}}
+  .menu-btn{display:none;}
+  @media(max-width:880px){.menu-btn{display:inline-flex;align-items:center;gap:8px;background:var(--tinto);color:#fff;border:none;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;margin-bottom:12px;}}
+  .phase-eyebrow{font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--achiote-dark);font-weight:700;}
+  .phase-title{font-size:30px;margin-top:6px;}
+  .phase-intro{font-size:14.5px;color:#4A5568;line-height:1.6;margin-top:10px;max-width:640px;}
+
+  .card{background:var(--paper);border-radius:var(--radius);box-shadow:var(--shadow);padding:24px 26px;margin-top:22px;}
+  .card h3{font-size:17px;margin-bottom:4px;}
+  .card .card-sub{font-size:13px;color:#6B7787;margin-bottom:16px;}
+  .section-label{font-size:12.5px;font-weight:700;color:var(--tinto);text-transform:uppercase;letter-spacing:.08em;margin:20px 0 10px;padding-top:16px;border-top:1px solid var(--pergamino-2);}
+  .section-label:first-child{border-top:none;padding-top:0;margin-top:0;}
+
+  .field-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px 22px;}
+  @media(max-width:640px){.field-grid{grid-template-columns:1fr;}}
+  .field{display:flex;flex-direction:column;}
+  .field.full{grid-column:1/-1;}
+  .field label{font-size:13px;font-weight:600;color:var(--tinto);margin-bottom:5px;display:flex;align-items:center;gap:5px;}
+  .req{color:var(--achiote-dark);}
+  .field .help{font-size:11.5px;color:#8A95A6;margin-top:4px;line-height:1.5;}
+  input[type=text],input[type=number],select,textarea{
+    font-family:'Work Sans',sans-serif;font-size:13.5px;padding:10px 12px;
+    border:1.5px solid #D7DEE8;border-radius:9px;background:var(--pergamino);
+    color:var(--carbon);width:100%;transition:border-color .15s,background .15s;
+  }
+  input[readonly]{background:#ECEEF2;color:#6B7787;cursor:not-allowed;}
+  textarea{min-height:80px;resize:vertical;}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--achiote);background:#fff;}
+
+  .choice-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:4px;}
+  .choice-grid.cols-4{grid-template-columns:repeat(4,1fr);}
+  @media(max-width:880px){.choice-grid.cols-4{grid-template-columns:repeat(2,1fr);}}
+  .choice-card{border:1.5px solid #D7DEE8;border-radius:10px;padding:11px 13px;cursor:pointer;transition:all .15s;background:#fff;}
+  .choice-card:hover{border-color:var(--achiote);background:var(--pergamino);}
+  .choice-card.selected{border-color:var(--tinto);background:rgba(27,58,95,0.06);box-shadow:0 0 0 1px var(--tinto) inset;}
+  .choice-card .ck-t{font-size:13px;font-weight:600;color:var(--tinto);}
+  .choice-card .ck-d{font-size:11px;color:#8A95A6;margin-top:2px;}
+  .choice-card.selected .ck-t{color:var(--tinto);}
+  /* color variants for risk levels */
+  .choice-card.sel-bajo.selected{border-color:var(--verde-ok);background:rgba(46,139,87,0.08);box-shadow:0 0 0 1px var(--verde-ok) inset;}
+  .choice-card.sel-medio.selected{border-color:var(--amarillo);background:rgba(212,160,23,0.1);box-shadow:0 0 0 1px var(--amarillo) inset;}
+  .choice-card.sel-alto.selected,.choice-card.sel-critico.selected{border-color:var(--rojo);background:rgba(192,57,43,0.08);box-shadow:0 0 0 1px var(--rojo) inset;}
+
+  .wizard-nav{display:flex;justify-content:space-between;margin-top:28px;gap:12px;}
+  .btn{font-family:'Work Sans',sans-serif;font-weight:600;font-size:14px;padding:11px 24px;border-radius:10px;cursor:pointer;border:none;transition:transform .12s,box-shadow .12s;}
+  .btn:active{transform:translateY(1px);}
+  .btn-primary{background:var(--achiote);color:var(--tinto);}
+  .btn-primary:hover{box-shadow:var(--shadow-lg);}
+  .btn-ghost{background:transparent;color:var(--tinto);border:1.5px solid #D7DEE8;}
+  .btn-ghost:hover{background:var(--pergamino-2);}
+  .btn-dark{background:var(--tinto);color:#fff;}
+  .btn-dark:hover{box-shadow:var(--shadow-lg);}
+  .btn-gold{background:var(--oro);color:var(--tinto);}
+  .btn:disabled{opacity:.35;cursor:not-allowed;}
+
+  .badge-draft{display:inline-block;background:var(--oro);color:var(--tinto);font-weight:700;font-size:11px;letter-spacing:.08em;text-transform:uppercase;padding:5px 12px;border-radius:999px;margin-bottom:14px;}
+
+  /* KPI cards */
+  .kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:18px;}
+  @media(max-width:760px){.kpi-grid{grid-template-columns:repeat(2,1fr);}}
+  @media(max-width:480px){.kpi-grid{grid-template-columns:1fr;}}
+  .kpi-card{background:#fff;border-radius:12px;padding:16px 18px;box-shadow:var(--shadow);border-top:5px solid var(--cafetal);}
+  .kpi-card.ok{border-top-color:var(--verde-ok);}
+  .kpi-card.warn{border-top-color:var(--amarillo);}
+  .kpi-card.bad{border-top-color:var(--rojo);}
+  .kpi-card .k{font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:#8A95A6;font-weight:700;}
+  .kpi-card .v{font-family:'IBM Plex Mono',monospace;font-size:24px;font-weight:700;color:var(--tinto);margin-top:5px;}
+  .kpi-card .v.ok{color:var(--verde-ok);}
+  .kpi-card .v.warn{color:var(--amarillo);}
+  .kpi-card .v.bad{color:var(--rojo);}
+  .kpi-card .d{font-size:11px;color:#8A95A6;margin-top:4px;}
+
+  .semaforo-banner{border-radius:var(--radius);padding:20px 24px;margin-top:18px;display:flex;align-items:center;gap:16px;}
+  .semaforo-banner.ok{background:rgba(46,139,87,0.1);border:1.5px solid var(--verde-ok);}
+  .semaforo-banner.warn{background:rgba(212,160,23,0.12);border:1.5px solid var(--amarillo);}
+  .semaforo-banner.bad{background:rgba(192,57,43,0.1);border:1.5px solid var(--rojo);}
+  .semaforo-banner .icon{font-size:36px;}
+  .semaforo-banner .txt h4{font-size:16px;margin-bottom:4px;}
+  .semaforo-banner.ok .txt h4{color:var(--verde-ok);}
+  .semaforo-banner.warn .txt h4{color:var(--amarillo);}
+  .semaforo-banner.bad .txt h4{color:var(--rojo);}
+  .semaforo-banner .txt p{font-size:13px;color:#4A5568;margin:0;line-height:1.5;}
+
+  .curve-wrap{position:relative;height:260px;margin-top:16px;}
+
+  .alert-box{border-radius:var(--radius);padding:18px 22px;margin-top:16px;border-left:6px solid var(--rojo);background:rgba(192,57,43,0.06);}
+  .alert-box h4{font-size:14px;color:var(--rojo);margin-bottom:6px;}
+  .alert-box p{font-size:13px;color:#4A5568;margin:0;line-height:1.6;}
+  .alert-box.warn{border-left-color:var(--amarillo);background:rgba(212,160,23,0.07);}
+  .alert-box.warn h4{color:var(--amarillo);}
+  .alert-box.ok{border-left-color:var(--verde-ok);background:rgba(46,139,87,0.06);}
+  .alert-box.ok h4{color:var(--verde-ok);}
+
+  .export-bar{display:flex;gap:12px;margin-top:28px;flex-wrap:wrap;}
+
+  table.fcal{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px;}
+  table.fcal th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:#8A95A6;font-weight:600;padding:8px;border-bottom:2px solid var(--pergamino-2);}
+  table.fcal td{padding:8px;border-bottom:1px solid var(--pergamino-2);}
+  table.fcal td.v{font-family:'IBM Plex Mono',monospace;text-align:right;}
+
+  @media print{
+    .sidebar,.wizard-nav,.export-bar,.menu-btn{display:none!important;}
+    .app-shell{grid-template-columns:1fr;}
+    .card,.kpi-card{box-shadow:none;border:1px solid #ddd;}
+  }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="eyebrow">Comfamiliar Risaralda · PMO</div>
+      <h1>Formulario de Seguimiento P-03</h1>
+      <div class="sub">Diligenciamiento mensual del avance físico y financiero de proyectos en ejecución.</div>
+    </div>
+    <div class="path-wrap">
+      <svg class="path-svg" viewBox="0 0 4 100" preserveAspectRatio="none">
+        <line class="path-line-bg" x1="2" y1="0" x2="2" y2="100"/>
+        <line class="path-line-fg" id="pathFg" x1="2" y1="0" x2="2" y2="0"/>
+      </svg>
+      <ul class="stations" id="stations"></ul>
+    </div>
+    <div class="side-footer">Formulario P-03 v1.0 · Nivel 3 del Sistema PMO<br>Consultoría Financiera PMO — Gustavo Andrés Ospina Agudelo</div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <button class="menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">☰ Bloques</button>
+    </div>
+    <div id="phaseHeader"></div>
+    <div id="phaseContent"></div>
+    <div class="wizard-nav">
+      <button class="btn btn-ghost" id="btnPrev" onclick="goPhase(currentPhase-1)">← Atrás</button>
+      <button class="btn btn-primary" id="btnNext" onclick="goPhase(currentPhase+1)">Siguiente →</button>
+    </div>
+  </main>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script>
+/* ============================================================
+   ESTADO
+   ============================================================ */
+const state = {
+  ident: {
+    cup: "CCF044-04-2026-001",
+    nombre: "Ampliación Fondo de Crédito",
+    fechaCorte: "Junio 2026",
+    periodoActual: 6,
+    periodoTotal: 12,
+    lider: "Subdirector Financiero",
+    area: "Financiero"
+  },
+  avance: {
+    bac: 29500,
+    pctFisico: 0.62,
+    pctPlaneado: 0.65,
+    ac: 19500,
+    hitosCumplidos: "Desembolso tramo 2 completado; Convenio bancario renovado"
+  },
+  cronograma: {
+    estado: "",
+    diasRetraso: 0,
+    impactaPresupuesto: ""
+  },
+  riesgos: {
+    nuevoRiesgo: "",
+    tipoRiesgo: "",
+    severidad: "",
+    contingencia: "",
+    descripcion: ""
+  },
+  alertas: {
+    intervencion: "",
+    riesgoIncumplimiento: "",
+    modificacion: "",
+    cierrePrevisto: "",
+    observaciones: ""
+  },
+  evidencias: {
+    link: "",
+    acta: "",
+    informe: "",
+    fotografica: "",
+    financiero: ""
+  },
+  historico: [
+    {periodo:"Ene 2026", pctFisico:0.10, pctPlaneado:0.12, ac:3200},
+    {periodo:"Feb 2026", pctFisico:0.22, pctPlaneado:0.24, ac:6800},
+    {periodo:"Mar 2026", pctFisico:0.35, pctPlaneado:0.36, ac:10500},
+    {periodo:"Abr 2026", pctFisico:0.46, pctPlaneado:0.48, ac:14200},
+    {periodo:"May 2026", pctFisico:0.55, pctPlaneado:0.57, ac:17000}
+  ]
+};
+
+function getPath(obj, path){ return path.split('.').reduce((o,k)=>(o===undefined||o===null)?undefined:o[k], obj); }
+function setPath(obj, path, val){
+  const parts = path.split('.'); let o = obj;
+  for(let i=0;i<parts.length-1;i++) o = o[parts[i]];
+  o[parts[parts.length-1]] = val;
+}
+
+/* ============================================================
+   NAVEGACIÓN
+   ============================================================ */
+let currentPhase = 1;
+const TOTAL_PHASES = 6;
+const PHASES = [
+  {n:1, t:"Identificación del corte", d:"Bloque 1"},
+  {n:2, t:"Avance físico y financiero", d:"Bloque 2"},
+  {n:3, t:"Estado del cronograma", d:"Bloque 3"},
+  {n:4, t:"Riesgos del período", d:"Bloque 4"},
+  {n:5, t:"Alertas y evidencias", d:"Bloques 5 y 6"},
+  {n:6, t:"Resultado del seguimiento", d:"KPIs calculados"}
+];
+const PHASE_INTROS = {
+  1: "Identifica el proyecto y el período que estás reportando. El CUP y nombre deberían venir de la formulación aprobada en el Wizard de Factibilidad.",
+  2: "Esta es la información más importante del seguimiento. A partir de aquí el sistema calcula automáticamente el CPI, SPI y demás indicadores — no necesitas conocer las fórmulas.",
+  3: "Cuéntanos cómo va el proyecto frente al cronograma planeado.",
+  4: "¿Surgió algún riesgo nuevo en este período que el Comité deba conocer?",
+  5: "Estas preguntas determinan si el proyecto requiere intervención directiva, y dónde están los soportes documentales del período.",
+  6: "El sistema calculó automáticamente los indicadores de desempeño financiero (EVM) de este corte."
+};
+
+function renderSidebar(){
+  const ul = document.getElementById('stations');
+  ul.innerHTML = PHASES.map(p=>{
+    let cls = 'station';
+    if(p.n===currentPhase) cls += ' active';
+    else if(p.n<currentPhase) cls += ' done';
+    return `<li class="${cls}" onclick="goPhase(${p.n})">
+      <div class="dot">${p.n<currentPhase?'✓':p.n}</div>
+      <div class="label"><div class="t">${p.t}</div><div class="d">${p.d}</div></div>
+    </li>`;
+  }).join('');
+  const pct = ((currentPhase-1)/(TOTAL_PHASES-1))*100;
+  document.getElementById('pathFg').setAttribute('y2', pct.toFixed(1));
+}
+
+function goPhase(n){
+  if(n<1||n>TOTAL_PHASES) return;
+  currentPhase = n;
+  renderSidebar();
+  document.getElementById('phaseHeader').innerHTML = `
+    <div class="phase-eyebrow">Bloque ${n} de ${TOTAL_PHASES} · ${PHASES[n-1].d}</div>
+    <h2 class="phase-title">${PHASES[n-1].t}</h2>
+    <p class="phase-intro">${PHASE_INTROS[n]}</p>
+  `;
+  const el = document.getElementById('phaseContent');
+  const renders = [null, renderB1, renderB2, renderB3, renderB4, renderB5, null];
+  if(n<6) el.innerHTML = renders[n]();
+  else { el.innerHTML = renderB6Shell(); renderB6(); }
+  document.getElementById('btnPrev').disabled = (n===1);
+  const nb = document.getElementById('btnNext');
+  nb.style.display = n===TOTAL_PHASES ? 'none' : '';
+  nb.textContent = n===5 ? 'Calcular indicadores →' : 'Siguiente →';
+  document.getElementById('sidebar').classList.remove('open');
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+/* ============================================================
+   COMPONENTES DE FORMULARIO
+   ============================================================ */
+function fld(label, path, opts={}){
+  const raw = getPath(state,path);
+  const val = (raw===undefined||raw===null) ? '' : raw;
+  return `<div class="field ${opts.full?'full':''}">
+    <label>${label}${opts.req?` <span class="req">*</span>`:''}</label>
+    <input type="${opts.type||'text'}" value="${val}" placeholder="${opts.ph||''}"
+      ${opts.readonly?'readonly':''}
+      data-path="${path}" data-format="${opts.format||'text'}" oninput="onFI(this)">
+    ${opts.help?`<div class="help">${opts.help}</div>`:''}
+  </div>`;
+}
+function fldTA(label, path, opts={}){
+  const raw = getPath(state,path)||'';
+  return `<div class="field ${opts.full?'full':''}">
+    <label>${label}${opts.req?` <span class="req">*</span>`:''}</label>
+    <textarea placeholder="${opts.ph||''}" data-path="${path}" oninput="onFI(this)" style="${opts.h?`min-height:${opts.h}px`:''}">${raw}</textarea>
+    ${opts.help?`<div class="help">${opts.help}</div>`:''}
+  </div>`;
+}
+function fldSel(label, path, options, opts={}){
+  const raw = getPath(state,path)||'';
+  return `<div class="field ${opts.full?'full':''}">
+    <label>${label}${opts.req?` <span class="req">*</span>`:''}</label>
+    <select data-path="${path}" onchange="onFI(this)">
+      <option value="" ${raw===''?'selected':''}>${opts.ph||'Selecciona...'}</option>
+      ${options.map(o=>`<option value="${o}" ${o===raw?'selected':''}>${o}</option>`).join('')}
+    </select>
+    ${opts.help?`<div class="help">${opts.help}</div>`:''}
+  </div>`;
+}
+function onFI(el){
+  const path = el.dataset.path;
+  const fmt = el.dataset.format;
+  let val = el.value;
+  if(fmt==='pct') val = (parseFloat(val)||0)/100;
+  else if(fmt==='num') val = parseFloat(val)||0;
+  setPath(state, path, val);
+}
+function choiceGroup(path, options, cols=2){
+  const raw = getPath(state, path);
+  return `<div class="choice-grid ${cols===4?'cols-4':''}">
+    ${options.map(o=>{
+      const val = typeof o==='string'?o:o.v;
+      const desc = typeof o==='object'?o.d:null;
+      const sel = (raw===val)?'selected':'';
+      const colorCls = val.toLowerCase().includes('bajo')?'sel-bajo':val.toLowerCase().includes('medio')?'sel-medio':(val.toLowerCase().includes('alto')||val.toLowerCase().includes('crítico')||val.toLowerCase().includes('critico'))?'sel-alto':'';
+      return `<div class="choice-card ${colorCls} ${sel}" onclick="selectChoice(this,'${path}','${val.replace(/'/g,"\\'")}')">
+        <div class="ck-t">${val}</div>
+        ${desc?`<div class="ck-d">${desc}</div>`:''}
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+function selectChoice(el, path, value){
+  setPath(state, path, value);
+  el.parentElement.querySelectorAll('.choice-card').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  if(path==='riesgos.nuevoRiesgo'){
+    document.getElementById('riesgoDetalle').style.display = value==='Sí' ? 'block' : 'none';
+  }
+}
+
+/* ============================================================
+   BLOQUE 1 — IDENTIFICACIÓN DEL CORTE
+   ============================================================ */
+function renderB1(){
+  return `
+  <div class="card">
+    <h3>Identificación del corte</h3>
+    <div class="card-sub">El CUP y nombre deberían provenir del proyecto ya aprobado en el Wizard de Factibilidad Financiera.</div>
+    <div class="field-grid">
+      ${fld("Código Único de Proyecto (CUP)", "ident.cup", {req:true, ph:"CCF044-XX-2026-001"})}
+      ${fld("Nombre del proyecto", "ident.nombre", {req:true, full:true})}
+      ${fld("Fecha del corte (mes/año)", "ident.fechaCorte", {req:true, ph:"Junio 2026"})}
+      ${fld("Período reportado (mes N)", "ident.periodoActual", {type:"number", help:"¿En qué mes de ejecución va el proyecto?"})}
+      ${fld("Duración total del proyecto (meses)", "ident.periodoTotal", {type:"number"})}
+      ${fld("Líder responsable", "ident.lider", {req:true})}
+      ${fldSel("Área", "ident.area", ["Financiero","Servicios","Educación","Salud","Turismo","Administración","Vivienda","Mercadeo Social"], {req:true})}
+    </div>
+  </div>`;
+}
+
+/* ============================================================
+   BLOQUE 2 — AVANCE FÍSICO Y FINANCIERO
+   ============================================================ */
+function renderB2(){
+  return `
+  <div class="card">
+    <h3>Avance físico y financiero</h3>
+    <div class="card-sub">Esta es la información clave. A partir de estos 4 datos el sistema calcula CPI, SPI, EAC, VAC y el semáforo automáticamente.</div>
+    <div class="field-grid">
+      ${fld("BAC — Presupuesto aprobado total (COP MM)", "avance.bac", {type:"number", req:true, help:"Viene de la formulación aprobada en el Wizard de Factibilidad Financiera."})}
+      ${fld("% Avance físico acumulado", "avance.pctFisico", {type:"number", format:"pct", req:true, ph:"Ej: 62", help:"¿Qué porcentaje del trabajo está realmente completado? (0-100)"})}
+      ${fld("% Avance planeado (según cronograma)", "avance.pctPlaneado", {type:"number", format:"pct", req:true, ph:"Ej: 65", help:"¿Qué porcentaje debería estar completado según la línea base aprobada?"})}
+      ${fld("Costo real acumulado — AC (COP MM)", "avance.ac", {type:"number", req:true, help:"Gasto facturado o pagado a la fecha de corte."})}
+    </div>
+    ${fldTA("Hitos de Valor cumplidos este período", "avance.hitosCumplidos", {full:true, h:80, ph:"Lista los hitos entregados realmente en este período (no solo pagados)."})}
+    <div class="help" style="margin-top:10px;">💡 Recuerda: el avance físico debe reflejar entregables reales, no solo facturación. Esa es la diferencia entre control real y "seguimiento fantasma".</div>
+  </div>`;
+}
+
+/* ============================================================
+   BLOQUE 3 — ESTADO DEL CRONOGRAMA
+   ============================================================ */
+function renderB3(){
+  return `
+  <div class="card">
+    <h3>¿El proyecto va según el cronograma?</h3>
+    ${choiceGroup("cronograma.estado", [
+      {v:"En tiempo", d:"El proyecto avanza según lo planeado"},
+      {v:"Adelantado", d:"El proyecto va más rápido de lo previsto"},
+      {v:"Retrasado", d:"Hay desviación pero es manejable"},
+      {v:"Crítico", d:"El retraso compromete la fecha de cierre"}
+    ])}
+    <div class="field-grid" style="margin-top:18px;">
+      ${fld("¿Cuántos días/semanas de retraso acumulado?", "cronograma.diasRetraso", {type:"number", ph:"0 si está en tiempo"})}
+      ${fldSel("¿El retraso impacta el presupuesto?", "cronograma.impactaPresupuesto", ["Sí","No","En evaluación"])}
+    </div>
+  </div>`;
+}
+
+/* ============================================================
+   BLOQUE 4 — RIESGOS DEL PERÍODO
+   ============================================================ */
+function renderB4(){
+  return `
+  <div class="card">
+    <h3>¿Surgieron riesgos nuevos en el período?</h3>
+    ${choiceGroup("riesgos.nuevoRiesgo", ["Sí","No"])}
+    <div id="riesgoDetalle" style="margin-top:18px; ${state.riesgos.nuevoRiesgo==='Sí'?'':'display:none'}">
+      <div class="field-grid">
+        ${fldSel("Tipo de riesgo", "riesgos.tipoRiesgo", ["Financiero","Jurídico","Operativo","Contratación","Técnico"])}
+        ${fldSel("¿Se activó alguna contingencia?", "riesgos.contingencia", ["Sí","No"])}
+      </div>
+      <div class="field full" style="margin-top:14px;">
+        <label>Nivel de severidad</label>
+        ${choiceGroup("riesgos.severidad", ["Bajo","Medio","Alto","Crítico"], 4)}
+      </div>
+      ${fldTA("Describe brevemente el riesgo identificado", "riesgos.descripcion", {full:true, h:80})}
+    </div>
+  </div>`;
+}
+
+/* ============================================================
+   BLOQUE 5 — ALERTAS EJECUTIVAS Y EVIDENCIAS
+   ============================================================ */
+function renderB5(){
+  return `
+  <div class="card">
+    <h3>Alertas ejecutivas</h3>
+    <div class="card-sub">Estas respuestas determinan si el proyecto necesita atención del Comité.</div>
+    <div class="field full">
+      <label>¿Requiere intervención directiva?</label>
+      ${choiceGroup("alertas.intervencion", ["Sí","No"])}
+    </div>
+    <div class="field full" style="margin-top:14px;">
+      <label>¿Existe riesgo de incumplimiento de meta?</label>
+      ${choiceGroup("alertas.riesgoIncumplimiento", ["Bajo","Medio","Alto"])}
+    </div>
+    <div class="field-grid" style="margin-top:18px;">
+      ${fldSel("¿Se requiere modificación presupuestal?", "alertas.modificacion", ["Sí","No","En trámite"])}
+      ${fldSel("¿El proyecto puede cerrarse en la fecha prevista?", "alertas.cierrePrevisto", ["Sí","No","Con ajustes"])}
+    </div>
+    ${fldTA("Observaciones del período", "alertas.observaciones", {full:true, h:80})}
+  </div>
+  <div class="card">
+    <h3>Evidencias y documentación</h3>
+    <div class="card-sub">Soportes del período reportado.</div>
+    <div class="field-grid">
+      ${fld("Link carpeta del proyecto", "evidencias.link", {ph:"URL SharePoint / Drive", full:true})}
+      ${fld("Acta del período", "evidencias.acta", {ph:"Nombre del documento"})}
+      ${fld("Informe técnico (si aplica)", "evidencias.informe", {ph:"Nombre del documento"})}
+      ${fld("Evidencia fotográfica (si aplica)", "evidencias.fotografica", {ph:"Carpeta / link"})}
+      ${fld("Soporte financiero", "evidencias.financiero", {ph:"Facturas / órdenes de pago"})}
+    </div>
+  </div>`;
+}
+
+/* ============================================================
+   MOTOR EVM — Earned Value Management
+   ============================================================ */
+function calcEVM(){
+  const bac = parseFloat(state.avance.bac)||0;
+  const pctFisico = parseFloat(state.avance.pctFisico)||0;
+  const pctPlaneado = parseFloat(state.avance.pctPlaneado)||0;
+  const ac = parseFloat(state.avance.ac)||0;
+
+  const ev = pctFisico*bac;
+  const pv = pctPlaneado*bac;
+  const cpi = ac>0 ? ev/ac : null;
+  const spi = pv>0 ? ev/pv : null;
+  const delta = (cpi!==null && spi!==null) ? Math.abs(spi-cpi) : null;
+  const eac = cpi!==null && cpi>0 ? ac + (bac-ev)/cpi : null;
+  const vac = eac!==null ? bac-eac : null;
+
+  let semaforo, semColor, semTexto;
+  if(delta===null){ semaforo='Sin datos'; semColor='warn'; semTexto='Faltan datos para calcular el semáforo.'; }
+  else if(delta<=0.07){ semaforo='🟢 VERDE'; semColor='ok'; semTexto='Desempeño normal. Autonomía total del líder de proyecto.'; }
+  else if(delta<=0.14){ semaforo='🟡 AMARILLO'; semColor='warn'; semTexto='Alerta de tendencia. Se requiere plan de acción en el próximo Comité Nivel 2.'; }
+  else { semaforo='🔴 ROJO'; semColor='bad'; semTexto='Parálisis Financiera Preventiva. La PMO puede suspender el siguiente desembolso.'; }
+
+  return {bac, pctFisico, pctPlaneado, ac, ev, pv, cpi, spi, delta, eac, vac, semaforo, semColor, semTexto};
+}
+
+function fmtCOP(n){
+  if(n===null||n===undefined||isNaN(n)) return '—';
+  const sign = n<0?'-':'';
+  return sign+'$'+Math.round(Math.abs(n)).toLocaleString('es-CO')+' MM';
+}
+function fmtPct(n,dec=1){ if(n===null||n===undefined||isNaN(n)) return 'N/D'; return (n*100).toFixed(dec)+'%'; }
+function fmtIdx(n){ if(n===null||n===undefined||isNaN(n)) return 'N/D'; return n.toFixed(2); }
+function idxClass(n, invert=false){
+  if(n===null||n===undefined||isNaN(n)) return '';
+  if(n>=1) return 'ok';
+  if(n>=0.85) return 'warn';
+  return 'bad';
+}
+
+/* ============================================================
+   BLOQUE 6 — RESULTADO DEL SEGUIMIENTO
+   ============================================================ */
+let chartCurvaS = null;
+function renderB6Shell(){
+  return `
+  <div class="badge-draft">Borrador — Período: ${state.ident.fechaCorte}</div>
+  <div id="semaforoWrap"></div>
+  <div class="kpi-grid" id="kpiGrid"></div>
+
+  <div class="card">
+    <h3>Curva S — Avance físico vs. financiero</h3>
+    <div class="card-sub">Compara el valor ganado (EV), el costo real (AC) y el valor planeado (PV) a lo largo del tiempo.</div>
+    <div class="curve-wrap"><canvas id="chartCurvaS"></canvas></div>
+  </div>
+
+  <div class="card">
+    <h3>Detalle de indicadores EVM</h3>
+    <table class="fcal" id="evmTable"></table>
+  </div>
+
+  <div id="alertasResumen"></div>
+
+  <div class="export-bar">
+    <button class="btn btn-dark" onclick="window.print()">📄 Exportar a PDF</button>
+    <button class="btn btn-ghost" onclick="goPhase(1)">← Volver a editar</button>
+    <button class="btn btn-ghost" onclick="guardarBorrador()">💾 Guardar borrador</button>
+    <button class="btn btn-ghost" onclick="cargarBorrador()">📂 Cargar borrador</button>
+    <button class="btn btn-primary" onclick="enviarPMO()">📤 Enviar a PMO</button>
+  </div>
+  `;
+}
+
+function renderB6(){
+  const e = calcEVM();
+
+  document.getElementById('semaforoWrap').innerHTML = `
+    <div class="semaforo-banner ${e.semColor}">
+      <div class="icon">${e.semColor==='ok'?'✅':e.semColor==='warn'?'⚠️':'🚨'}</div>
+      <div class="txt">
+        <h4>${e.semaforo} — Delta de Control: ${fmtPct(e.delta)}</h4>
+        <p>${e.semTexto}</p>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('kpiGrid').innerHTML = `
+    <div class="kpi-card ${idxClass(e.cpi)}">
+      <div class="k">CPI — Desempeño de Costo</div>
+      <div class="v ${idxClass(e.cpi)}">${fmtIdx(e.cpi)}</div>
+      <div class="d">EV/AC — meta ≥ 1.00</div>
+    </div>
+    <div class="kpi-card ${idxClass(e.spi)}">
+      <div class="k">SPI — Desempeño Cronograma</div>
+      <div class="v ${idxClass(e.spi)}">${fmtIdx(e.spi)}</div>
+      <div class="d">EV/PV — meta ≥ 1.00</div>
+    </div>
+    <div class="kpi-card ${e.semColor}">
+      <div class="k">Delta de Control</div>
+      <div class="v ${e.semColor}">${fmtPct(e.delta)}</div>
+      <div class="d">|SPI - CPI| — meta ≤ 7%</div>
+    </div>
+    <div class="kpi-card">
+      <div class="k">EV — Valor Ganado</div>
+      <div class="v">${fmtCOP(e.ev)}</div>
+      <div class="d">% físico × BAC</div>
+    </div>
+    <div class="kpi-card">
+      <div class="k">PV — Valor Planeado</div>
+      <div class="v">${fmtCOP(e.pv)}</div>
+      <div class="d">% planeado × BAC</div>
+    </div>
+    <div class="kpi-card">
+      <div class="k">AC — Costo Real</div>
+      <div class="v">${fmtCOP(e.ac)}</div>
+      <div class="d">Gasto acumulado a la fecha</div>
+    </div>
+    <div class="kpi-card ${e.eac!==null && e.eac>e.bac?'bad':'ok'}">
+      <div class="k">EAC — Estimado al Término</div>
+      <div class="v ${e.eac!==null && e.eac>e.bac?'bad':'ok'}">${fmtCOP(e.eac)}</div>
+      <div class="d">Proyección de costo final</div>
+    </div>
+    <div class="kpi-card ${e.vac!==null && e.vac<0?'bad':'ok'}">
+      <div class="k">VAC — Varianza al Término</div>
+      <div class="v ${e.vac!==null && e.vac<0?'bad':'ok'}">${fmtCOP(e.vac)}</div>
+      <div class="d">BAC - EAC</div>
+    </div>
+    <div class="kpi-card">
+      <div class="k">BAC — Presupuesto Total</div>
+      <div class="v">${fmtCOP(e.bac)}</div>
+      <div class="d">Línea base aprobada</div>
+    </div>
+  `;
+
+  // Curva S chart
+  const hist = [...state.historico, {periodo: state.ident.fechaCorte, pctFisico: e.pctFisico, pctPlaneado: e.pctPlaneado, ac: e.ac}];
+  const ctx = document.getElementById('chartCurvaS');
+  if(chartCurvaS) chartCurvaS.destroy();
+  chartCurvaS = new Chart(ctx, {
+    type:'line',
+    data:{
+      labels: hist.map(h=>h.periodo),
+      datasets:[
+        {label:'EV (Valor Ganado)', data: hist.map(h=>h.pctFisico*e.bac), borderColor:'#2E8B57', backgroundColor:'rgba(46,139,87,0.08)', tension:0.3},
+        {label:'PV (Valor Planeado)', data: hist.map(h=>h.pctPlaneado*e.bac), borderColor:'#1B3A5F', backgroundColor:'rgba(27,58,95,0.06)', borderDash:[6,4], tension:0.3},
+        {label:'AC (Costo Real)', data: hist.map(h=>h.ac), borderColor:'#C0392B', backgroundColor:'rgba(192,57,43,0.06)', tension:0.3}
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{position:'bottom', labels:{font:{family:'Work Sans'}}}},
+      scales:{ y:{ ticks:{ callback:(v)=>'$'+v.toLocaleString('es-CO') }, grid:{color:'#E1E6ED'} }, x:{ grid:{display:false} } }
+    }
+  });
+
+  // Tabla de detalle
+  document.getElementById('evmTable').innerHTML = `
+    <thead><tr><th>Indicador</th><th>Fórmula</th><th style="text-align:right">Valor</th></tr></thead>
+    <tbody>
+      <tr><td>EV — Valor Ganado</td><td>% avance físico × BAC</td><td class="v">${fmtCOP(e.ev)}</td></tr>
+      <tr><td>PV — Valor Planeado</td><td>% avance planeado × BAC</td><td class="v">${fmtCOP(e.pv)}</td></tr>
+      <tr><td>AC — Costo Real</td><td>Gasto facturado/pagado</td><td class="v">${fmtCOP(e.ac)}</td></tr>
+      <tr><td>CPI — Índice de Costo</td><td>EV / AC</td><td class="v">${fmtIdx(e.cpi)}</td></tr>
+      <tr><td>SPI — Índice de Cronograma</td><td>EV / PV</td><td class="v">${fmtIdx(e.spi)}</td></tr>
+      <tr><td>Delta de Control</td><td>|SPI - CPI|</td><td class="v">${fmtPct(e.delta)}</td></tr>
+      <tr><td>EAC — Estimado al Término</td><td>AC + (BAC - EV) / CPI</td><td class="v">${fmtCOP(e.eac)}</td></tr>
+      <tr><td>VAC — Varianza al Término</td><td>BAC - EAC</td><td class="v">${fmtCOP(e.vac)}</td></tr>
+    </tbody>
+  `;
+
+  // Resumen de alertas activadas
+  let alertHtml = '';
+  if(state.alertas.intervencion==='Sí'){
+    alertHtml += `<div class="alert-box"><h4>🚨 Requiere intervención directiva</h4><p>El líder marcó que este proyecto necesita atención del Comité Nivel 1 en la próxima sesión.</p></div>`;
+  }
+  if(state.cronograma.estado==='Crítico'){
+    alertHtml += `<div class="alert-box"><h4>🚨 Cronograma en estado crítico</h4><p>El retraso reportado (${state.cronograma.diasRetraso||0} días) compromete la fecha de cierre del proyecto.</p></div>`;
+  }
+  if(state.riesgos.nuevoRiesgo==='Sí' && (state.riesgos.severidad==='Alto'||state.riesgos.severidad==='Crítico')){
+    alertHtml += `<div class="alert-box"><h4>⚠️ Riesgo de severidad ${state.riesgos.severidad}</h4><p>Tipo: ${state.riesgos.tipoRiesgo||'No especificado'}. ${state.riesgos.descripcion||''}</p></div>`;
+  }
+  if(e.semColor==='ok' && !alertHtml){
+    alertHtml = `<div class="alert-box ok"><h4>✅ Proyecto en control</h4><p>No se identificaron alertas críticas en este período. El proyecto mantiene autonomía de gestión por parte del líder.</p></div>`;
+  }
+  document.getElementById('alertasResumen').innerHTML = alertHtml;
+}
+
+/* ============================================================
+   GUARDAR / CARGAR BORRADOR + ENVIAR A PMO — NIVEL 3
+   ============================================================ */
+function guardarBorrador(){
+  const borrador = {
+    version: 'SIPro-N3-v1',
+    fecha: new Date().toISOString(),
+    cup: state.ident.cup,
+    state: JSON.parse(JSON.stringify(state))
+  };
+  const blob = new Blob([JSON.stringify(borrador, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'Borrador_SIPro_N3_'+(state.ident.cup||'sin-cup').replace(/[^a-zA-Z0-9]/g,'-')+'.json';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(a.href);
+}
+
+function cargarBorrador(){
+  const input = document.createElement('input');
+  input.type='file'; input.accept='.json';
+  input.onchange = e => {
+    const file = e.target.files[0]; if(!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try {
+        const b = JSON.parse(ev.target.result);
+        if(!b.version||!b.version.startsWith('SIPro-N3')) throw new Error('Archivo no válido para Nivel 3');
+        Object.assign(state, b.state);
+        goPhase(currentPhase);
+        alert('✅ Borrador cargado.\nProyecto: '+(state.ident.nombre||'Sin nombre')+'\nCUP: '+state.ident.cup);
+      } catch(err){ alert('❌ No se pudo cargar el borrador.\nDetalle: '+err.message); }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+function enviarPMO(){
+  const e = calcEVM();
+  const campos = {
+    cup: state.ident.cup,
+    nombre: state.ident.nombre,
+    fecha_corte: state.ident.fechaCorte,
+    periodo: state.ident.periodoActual+'/'+state.ident.periodoTotal,
+    lider: state.ident.lider,
+    area: state.ident.area,
+    bac: state.avance.bac,
+    pct_fisico: (state.avance.pctFisico*100).toFixed(1)+'%',
+    pct_planeado: (state.avance.pctPlaneado*100).toFixed(1)+'%',
+    ac: state.avance.ac,
+    ev: Math.round(e.ev),
+    pv: Math.round(e.pv),
+    cpi: e.cpi ? e.cpi.toFixed(3) : 'N/D',
+    spi: e.spi ? e.spi.toFixed(3) : 'N/D',
+    delta: e.delta ? (e.delta*100).toFixed(2)+'%' : 'N/D',
+    eac: e.eac ? Math.round(e.eac) : 'N/D',
+    vac: e.vac ? Math.round(e.vac) : 'N/D',
+    semaforo: e.semaforo,
+    cronograma: state.cronograma.estado,
+    nuevo_riesgo: state.riesgos.nuevoRiesgo,
+    severidad_riesgo: state.riesgos.severidad||'—',
+    intervencion_directiva: state.alertas.intervencion||'—',
+    cierre_previsto: state.alertas.cierrePrevisto||'—',
+    fecha_envio: new Date().toLocaleDateString('es-CO')
+  };
+
+  const btn = document.querySelector('.btn-primary[onclick="enviarPMO()"]');
+  if(btn){ btn.textContent='⏳ Enviando...'; btn.disabled=true; }
+
+  enviarViaForm(
+    'https://script.google.com/macros/s/AKfycbzNDGOavQQjfOCCVj3gnrZ5lViq0ybAAUi_E1q-StAS0z3RH7EtEqlmRMQ-v9_ArK-n/exec',
+    {hoja:'Nivel3_Seguimiento', campos}
+  );
+
+  setTimeout(()=>{
+    if(btn){ btn.textContent='✅ Enviado'; btn.disabled=false; }
+    alert('✅ Seguimiento P-03 de "'+state.ident.nombre+'" ('+state.ident.cup+') enviado a la PMO.\nRevisa la hoja "Nivel3_Seguimiento" en el Google Sheet SIPro.\nSemáforo: '+e.semaforo);
+  }, 2000);
+}
+
+function enviarViaForm(url, datos){
+  // Estrategia: imagen de 1px con datos en query string (máxima compatibilidad)
+  const json = encodeURIComponent(JSON.stringify(datos));
+  const img = new Image();
+  img.src = url + '?data=' + json;
+  
+  // Fallback: también intentar con fetch sin cors
+  try {
+    fetch(url, {
+      method: 'POST',
+      mode: 'no-cors',
+      body: new URLSearchParams({payload: JSON.stringify(datos)})
+    }).catch(()=>{});
+  } catch(e) {}
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+goPhase(1);
+</script>
+</body>
+</html>
