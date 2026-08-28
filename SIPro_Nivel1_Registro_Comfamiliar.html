@@ -1,0 +1,1714 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wizard PMO v4 — Comfamiliar Risaralda</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<style>
+:root {
+  --cf-navy: #1B2A4A;
+  --cf-gold: #C9A84C;
+  --cf-gold-light: #F5EDD4;
+  --cf-dark: #1a1a2e;
+  --cf-dark2: #16213e;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --bg: #ffffff;
+  --bg2: #f7f8fa;
+  --text: #1a1a2a;
+  --text2: #6b7280;
+  --border: rgba(0,0,0,0.10);
+  --border2: rgba(0,0,0,0.18);
+  --success-bg: #eaf3de; --success-text: #3b6d11; --success-border: #97c459;
+  --warn-bg: #faeeda; --warn-text: #854f0b; --warn-border: #ef9f27;
+  --danger-bg: #fcebeb; --danger-text: #a32d2d; --danger-border: #e24b4a;
+  --info-bg: #e6f1fb; --info-text: #185fa5; --info-border: #85b7eb;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #eef0f5; min-height: 100vh; padding: 24px 16px 48px; color: var(--text); }
+.wiz-container { max-width: 760px; margin: 0 auto; background: var(--bg); border-radius: var(--radius); box-shadow: 0 4px 24px rgba(0,0,0,0.10); overflow: hidden; }
+
+/* HEADER */
+.wiz-header { background: var(--cf-navy); padding: 28px 28px 22px; }
+.wiz-tag { font-size: 11px; font-weight: 600; color: var(--cf-gold); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 8px; }
+.wiz-title { font-size: 22px; font-weight: 600; color: #fff; margin-bottom: 6px; }
+.wiz-subtitle { font-size: 13px; color: rgba(255,255,255,0.6); line-height: 1.5; }
+
+/* STEPS */
+.wiz-steps { display: flex; border-bottom: 1px solid var(--border); }
+.wiz-step { flex: 1; padding: 11px 12px; background: var(--bg2); font-size: 12px; font-weight: 500; color: var(--text2); text-align: center; border-right: 1px solid var(--border); cursor: default; }
+.wiz-step:last-child { border-right: none; }
+.wiz-step.active { background: var(--bg); color: var(--cf-navy); font-weight: 600; }
+.wiz-step.done { background: var(--success-bg); color: var(--success-text); }
+.wiz-progress { height: 3px; background: var(--border); }
+.wiz-progress-fill { height: 100%; background: var(--cf-gold); transition: width 0.4s ease; }
+
+/* BODY */
+.wiz-body { padding: 24px 28px; }
+.phase { display: none; }
+.phase.active { display: block; animation: fadeIn 0.25s ease; }
+@keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+
+.phase-label { display: inline-flex; align-items: center; gap: 6px; background: var(--cf-gold-light); color: var(--cf-navy); font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 20px; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+.phase-title { font-size: 20px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+.phase-desc { font-size: 13px; color: var(--text2); margin-bottom: 20px; line-height: 1.5; }
+
+/* SECTIONS */
+.section { margin-bottom: 20px; }
+.section-title { font-size: 13px; font-weight: 600; color: var(--cf-navy); margin-bottom: 14px; padding-bottom: 7px; border-bottom: 2px solid var(--cf-gold); display: flex; align-items: center; gap: 6px; }
+
+/* DARK SECTION (v2 style for phase 2) */
+.section-dark {
+  background: var(--cf-dark2);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 16px;
+}
+.section-dark .section-title {
+  color: var(--cf-gold);
+  border-bottom-color: var(--cf-gold);
+  font-size: 12px; letter-spacing: 0.5px; text-transform: uppercase;
+}
+.section-dark label { color: rgba(255,255,255,0.85); font-size: 13px; font-weight: 500; margin-bottom: 5px; }
+.section-dark input, .section-dark select, .section-dark textarea {
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: #f0f0f0;
+  border-radius: var(--radius-sm);
+  padding: 9px 12px; font-size: 13px;
+  font-family: inherit; width: 100%; outline: none;
+  transition: border-color 0.15s;
+}
+.section-dark input:focus, .section-dark select:focus { border-color: var(--cf-gold); }
+.section-dark select option { background: #1a1a2e; color: #f0f0f0; }
+.section-dark input::placeholder { color: rgba(255,255,255,0.3); }
+.section-dark .field-hint { color: rgba(255,255,255,0.4); font-size: 11px; margin-bottom: 6px; }
+
+/* TOGGLE dark */
+.toggle-row-dark { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.07); margin-bottom: 12px; }
+.toggle-lbl-dark { font-size: 13px; color: rgba(255,255,255,0.85); }
+
+/* FORMS */
+label { font-size: 13px; font-weight: 500; color: var(--text); display: block; margin-bottom: 4px; }
+.field-hint { font-size: 11px; color: var(--text2); margin-bottom: 6px; }
+.field { margin-bottom: 14px; }
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+input[type=text], input[type=number], select, textarea { width: 100%; border: 1px solid var(--border2); border-radius: var(--radius-sm); padding: 9px 12px; font-size: 13px; font-family: inherit; color: var(--text); background: var(--bg); outline: none; transition: border-color 0.15s; }
+input:focus, select:focus, textarea:focus { border-color: var(--cf-gold); }
+textarea { resize: vertical; min-height: 80px; }
+.wc { font-size: 11px; color: var(--text2); text-align: right; margin-top: 2px; }
+.wc.warn { color: var(--warn-text); }
+.wc.over { color: var(--danger-text); }
+
+/* CLASIFICACION CASCADA */
+.macro-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 4px; }
+.macro-card { background: var(--bg2); border: 1.5px solid var(--border); border-radius: var(--radius-sm); padding: 11px 13px; cursor: pointer; transition: all 0.15s; user-select: none; }
+.macro-card:hover { border-color: var(--cf-gold); }
+.macro-card.selected { background: var(--cf-navy); border-color: var(--cf-navy); }
+.macro-card.selected .macro-card-title { color: var(--cf-gold); }
+.macro-card.selected .macro-card-sub { color: rgba(255,255,255,0.55); }
+.macro-card-title { font-size: 13px; font-weight: 600; color: var(--text); }
+.macro-card-sub { font-size: 11px; color: var(--text2); margin-top: 2px; }
+.nivel2-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-top: 4px; }
+.nivel2-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 9px 11px; cursor: pointer; transition: all 0.15s; user-select: none; }
+.nivel2-card:hover { border-color: var(--cf-gold); }
+.nivel2-card.selected { background: var(--cf-gold-light); border: 1.5px solid var(--cf-gold); }
+.nivel2-card-title { font-size: 12.5px; font-weight: 600; color: var(--text); }
+.nivel2-card.selected .nivel2-card-title { color: var(--cf-navy); }
+.nivel2-card-sub { font-size: 11px; color: var(--text2); margin-top: 2px; }
+.fondos-multi { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.fondo-chip { padding: 5px 11px; font-size: 12px; background: var(--bg2); border: 1px solid var(--border); border-radius: 20px; cursor: pointer; color: var(--text2); transition: all 0.15s; user-select: none; }
+.fondo-chip:hover { border-color: var(--cf-navy); color: var(--cf-navy); }
+.fondo-chip.picked { background: var(--cf-navy); border-color: var(--cf-navy); color: var(--cf-gold); font-weight: 600; }
+.innov-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-top: 6px; }
+.innov-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 9px 11px; cursor: pointer; transition: all 0.15s; }
+.innov-card:hover { border-color: var(--cf-gold); }
+.innov-card.selected { background: var(--cf-gold-light); border: 1.5px solid var(--cf-gold); }
+.innov-card-title { font-size: 12.5px; font-weight: 600; color: var(--text); }
+.innov-card.selected .innov-card-title { color: var(--cf-navy); }
+.innov-card-sub { font-size: 11px; color: var(--text2); margin-top: 2px; }
+.collapsible-section { overflow: hidden; transition: max-height 0.35s ease, opacity 0.3s ease; max-height: 0; opacity: 0; }
+.collapsible-section.open { max-height: 800px; opacity: 1; }
+.cobertura-toggle { display: flex; align-items: center; justify-content: space-between; background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 14px; cursor: pointer; margin-top: 4px; transition: all 0.15s; }
+.cobertura-toggle:hover { border-color: var(--cf-gold); }
+.cobertura-toggle.yes { background: var(--cf-gold-light); border-color: var(--cf-gold); }
+.cobertura-toggle .ct-label { font-size: 13px; font-weight: 500; }
+.cobertura-toggle .ct-badge { font-size: 11px; font-weight: 600; padding: 2px 9px; border-radius: 10px; background: var(--cf-gold); color: var(--cf-navy); display: none; }
+.cobertura-toggle.yes .ct-badge { display: inline-block; }
+
+/* AMBIENTAL */
+.amb-section { background: linear-gradient(135deg, #0f2417 0%, #1a3a2a 100%); border: 1px solid rgba(255,255,255,0.08); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; }
+.amb-title { font-size: 12px; font-weight: 600; color: #7ecb9e; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 4px; padding-bottom: 8px; border-bottom: 1px solid rgba(126,203,158,0.25); display: flex; align-items: center; gap: 8px; justify-content: space-between; }
+.amb-title .amb-pts { font-size: 11px; background: rgba(126,203,158,0.15); color: #7ecb9e; padding: 2px 10px; border-radius: 20px; }
+.amb-na-badge { font-size: 11px; font-weight: 600; background: rgba(126,203,158,0.2); color: #7ecb9e; padding: 4px 12px; border-radius: 20px; display: inline-block; margin-bottom: 12px; }
+.amb-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+.amb-card { border: 1.5px solid rgba(255,255,255,0.08); border-radius: var(--radius-sm); padding: 11px 13px; cursor: pointer; transition: all 0.15s; background: rgba(255,255,255,0.03); user-select:none; }
+.amb-card:hover { border-color: #7ecb9e; background: rgba(126,203,158,0.06); }
+.amb-card.si { border-color: #7ecb9e; background: rgba(126,203,158,0.14); }
+.amb-card.no_aplica { border-color: #6fa8d8; background: rgba(111,168,216,0.12); }
+.amb-card.pendiente { border-color: rgba(255,107,107,0.5); background: rgba(255,107,107,0.08); }
+.amb-card-title { font-size: 12.5px; font-weight: 600; color: rgba(255,255,255,0.85); }
+.amb-card.si .amb-card-title { color: #7ecb9e; }
+.amb-card.no_aplica .amb-card-title { color: #6fa8d8; }
+.amb-card.pendiente .amb-card-title { color: #ff9a9a; }
+.amb-card-sub { font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 2px; }
+.amb-card-pts { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.3); margin-top: 6px; }
+.amb-card.si .amb-card-pts { color: #7ecb9e; }
+.amb-card.no_aplica .amb-card-pts { color: #6fa8d8; }
+.amb-card.pendiente .amb-card-pts { color: #ff9a9a; }
+.amb-estado-bar { display:flex; gap:4px; margin-top:8px; }
+.amb-estado-btn { flex:1; padding:5px 2px; border-radius:5px; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.04); color:rgba(255,255,255,0.35); font-size:11px; font-weight:600; cursor:pointer; text-align:center; transition:all 0.15s; }
+.amb-estado-btn:hover { border-color:rgba(255,255,255,0.25); color:rgba(255,255,255,0.7); }
+.amb-estado-btn.active-si { background:#7ecb9e; border-color:#7ecb9e; color:#0f2417; }
+.amb-estado-btn.active-no_aplica { background:#6fa8d8; border-color:#6fa8d8; color:#0d1f30; }
+.amb-estado-btn.active-pendiente { background:rgba(255,107,107,0.3); border-color:#ff6b6b; color:#ffb3b3; }
+.amb-score-preview { display: flex; align-items: center; gap: 10px; margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.07); }
+.amb-score-bar-bg { flex: 1; height: 6px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; }
+.amb-score-bar-fg { height: 100%; background: #7ecb9e; border-radius: 4px; transition: width 0.4s ease; }
+.amb-score-label { font-size: 12px; color: rgba(255,255,255,0.5); white-space: nowrap; }
+.amb-score-val { font-size: 13px; font-weight: 700; color: #7ecb9e; white-space: nowrap; }
+
+/* CARD GRID */
+.card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 4px; }
+.sel-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 12px; cursor: pointer; transition: all 0.15s; user-select: none; }
+.sel-card:hover { border-color: var(--cf-gold); }
+.sel-card.selected { background: var(--cf-gold-light); border: 2px solid var(--cf-gold); }
+.sel-card-title { font-size: 13px; font-weight: 600; color: var(--text); }
+.sel-card.selected .sel-card-title { color: var(--cf-navy); }
+.sel-card-sub { font-size: 11px; color: var(--text2); margin-top: 2px; }
+
+/* KPI */
+.kpi-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; }
+.kpi-chip { padding: 4px 10px; font-size: 12px; background: var(--bg2); border: 1px solid var(--border); border-radius: 20px; cursor: pointer; color: var(--text2); transition: all 0.15s; user-select: none; }
+.kpi-chip:hover { border-color: var(--cf-gold); color: var(--text); }
+.kpi-chip.picked { background: var(--cf-gold-light); border: 1px solid var(--cf-gold); color: var(--cf-navy); }
+.kpi-tag { display: inline-flex; align-items: center; gap: 4px; background: var(--info-bg); color: var(--info-text); padding: 3px 10px; border-radius: 20px; font-size: 12px; }
+.kpi-remove { cursor: pointer; font-size: 15px; line-height: 1; }
+
+/* INFO BOX */
+.info-box { background: var(--info-bg); border-left: 3px solid var(--info-border); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; padding: 10px 14px; font-size: 12px; color: var(--info-text); margin-bottom: 14px; line-height: 1.5; }
+.info-box-dark { background: rgba(52,152,219,0.1); border-left: 3px solid rgba(52,152,219,0.4); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; padding: 10px 14px; font-size: 12px; color: #85b7eb; margin-bottom: 16px; line-height: 1.5; }
+
+/* CUP */
+.cup-box { background: var(--cf-navy); border-radius: var(--radius-sm); padding: 10px 16px; margin-bottom: 16px; display: inline-flex; align-items: center; gap: 10px; }
+.cup-label { font-size: 10px; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 1px; }
+.cup-code { font-family: 'Courier New', monospace; font-size: 15px; font-weight: 700; color: var(--cf-gold); letter-spacing: 1px; }
+
+/* TOGGLE */
+.toggle { width: 38px; height: 20px; background: var(--border2); border-radius: 10px; cursor: pointer; position: relative; transition: background 0.2s; flex-shrink: 0; }
+.toggle.on { background: #1D9E75; }
+.toggle::after { content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; background: white; border-radius: 50%; transition: left 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+.toggle.on::after { left: 20px; }
+
+/* MADUREZ */
+.madurez-box { background: var(--cf-gold-light); border: 1px solid var(--cf-gold); border-radius: var(--radius-sm); padding: 12px 14px; margin-top: 12px; }
+.madurez-title { font-size: 12px; font-weight: 600; color: var(--cf-navy); margin-bottom: 8px; }
+.madurez-check { display: flex; align-items: center; gap: 8px; padding: 7px 0; border-bottom: 1px solid rgba(201,168,76,0.3); cursor: pointer; }
+.madurez-check:last-child { border-bottom: none; }
+.madurez-check label { font-size: 12px; color: var(--text); cursor: pointer; margin: 0; flex: 1; }
+.madurez-pts { font-size: 11px; font-weight: 600; color: var(--cf-navy); background: rgba(201,168,76,0.3); padding: 2px 8px; border-radius: 10px; flex-shrink: 0; }
+
+/* BUTTONS */
+.btn-row { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border); }
+.btn { font-family: inherit; font-size: 13px; font-weight: 600; padding: 10px 20px; border-radius: var(--radius-sm); cursor: pointer; transition: all 0.15s; display: inline-flex; align-items: center; gap: 6px; }
+.btn-primary { background: var(--cf-navy); color: #fff; border: none; }
+.btn-primary:hover { background: #0f1e36; }
+.btn-secondary { background: transparent; color: var(--text); border: 1px solid var(--border2); }
+.btn-secondary:hover { background: var(--bg2); }
+.btn-gold { background: var(--cf-gold); color: var(--cf-navy); border: none; }
+.btn-gold:hover { background: #b8942e; }
+
+/* SEMAFORO */
+.semaforo { border-radius: var(--radius-sm); padding: 14px 16px; margin-bottom: 16px; display: flex; align-items: flex-start; gap: 12px; }
+.semaforo.verde { background: var(--success-bg); border: 1px solid var(--success-border); }
+.semaforo.amarillo { background: var(--warn-bg); border: 1px solid var(--warn-border); }
+.semaforo.rojo { background: var(--danger-bg); border: 1px solid var(--danger-border); }
+.sem-title { font-size: 13px; font-weight: 600; margin-bottom: 3px; }
+.semaforo.verde .sem-title { color: var(--success-text); }
+.semaforo.amarillo .sem-title { color: var(--warn-text); }
+.semaforo.rojo .sem-title { color: var(--danger-text); }
+.sem-desc { font-size: 12px; color: var(--text2); line-height: 1.5; }
+
+/* SCORE BARS */
+.score-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.score-name { font-size: 12px; color: var(--text2); width: 200px; flex-shrink: 0; }
+.score-bar-bg { flex: 1; height: 6px; background: var(--border); border-radius: 4px; overflow: hidden; }
+.score-bar-fill { height: 100%; border-radius: 4px; background: var(--cf-navy); transition: width 0.5s ease; }
+.score-num { font-size: 12px; font-weight: 600; width: 28px; text-align: right; }
+
+/* DATA SUMMARY */
+.data-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+.data-cell { background: var(--bg2); border-radius: var(--radius-sm); padding: 10px 12px; }
+.data-cell-label { font-size: 10px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
+.data-cell-val { font-size: 13px; font-weight: 500; color: var(--text); }
+
+/* ESCENARIOS DETALLE DARK (v2 style) */
+.esc-cards { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 16px; }
+.esc-card { background: var(--cf-dark2); border: 1px solid rgba(255,255,255,0.08); border-radius: var(--radius); padding: 14px; }
+.esc-card-header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+.esc-card-icon { font-size: 18px; }
+.esc-card-title { font-size: 12px; font-weight: 600; color: #fff; }
+.esc-card-sub { font-size: 10px; color: rgba(255,255,255,0.4); }
+.esc-row { display: flex; justify-content: space-between; align-items: center; padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.esc-row:last-child { border-bottom: none; }
+.esc-row-label { font-size: 11px; color: rgba(255,255,255,0.5); }
+.esc-row-val { font-size: 12px; font-weight: 600; color: #f0f0f0; }
+.esc-row-val.pos { color: #2ecc71; }
+.esc-row-val.neg { color: #ff6b6b; }
+
+/* TABLA COMPARATIVA DARK (v2 style) */
+.tabla-dark-wrap { background: var(--cf-dark2); border: 1px solid rgba(255,255,255,0.08); border-radius: var(--radius); overflow: hidden; margin-bottom: 16px; }
+.tabla-dark { width: 100%; border-collapse: collapse; font-size: 12px; }
+.tabla-dark th { background: rgba(255,255,255,0.05); padding: 10px 14px; text-align: left; color: rgba(255,255,255,0.5); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; font-size: 11px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+.tabla-dark td { padding: 10px 14px; color: #f0f0f0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.tabla-dark tr:last-child td { border-bottom: none; }
+.tabla-dark .td-pos { color: #2ecc71; font-weight: 600; }
+.tabla-dark .td-neg { color: #ff6b6b; font-weight: 600; }
+.tabla-dark .td-label { color: rgba(255,255,255,0.7); font-weight: 500; }
+.th-icon { font-size: 16px; margin-right: 4px; }
+
+/* CHART */
+.chart-dark { background: var(--cf-dark2); border: 1px solid rgba(255,255,255,0.08); border-radius: var(--radius); padding: 16px; margin-bottom: 16px; }
+.chart-title-dark { font-size: 12px; color: rgba(255,255,255,0.5); margin-bottom: 12px; font-weight: 500; }
+.bar-chart { display: flex; align-items: flex-end; gap: 8px; height: 110px; }
+.bar-group { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.bar-lbl { font-size: 10px; color: rgba(255,255,255,0.4); }
+.bar-bars { display: flex; gap: 3px; align-items: flex-end; height: 80px; }
+.bar-el { width: 14px; border-radius: 2px 2px 0 0; }
+
+/* ASIGNACIONES DARK */
+.asig-dark { background: var(--cf-dark2); border: 1px solid rgba(255,255,255,0.08); border-radius: var(--radius); overflow: hidden; margin-bottom: 8px; }
+.asig-dark table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.asig-dark th { background: rgba(255,255,255,0.05); padding: 8px 12px; text-align: left; color: rgba(255,255,255,0.5); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+.asig-dark td { padding: 8px 12px; color: #f0f0f0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.asig-dark tr:last-child td { border-bottom: none; }
+.asig-warn { color: var(--cf-gold) !important; font-weight: 600; }
+
+/* REC BOX */
+.rec-box { background: var(--bg2); border-radius: var(--radius-sm); padding: 14px 16px; margin-bottom: 16px; }
+.rec-title { font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+.rec-desc { font-size: 12px; color: var(--text2); line-height: 1.6; }
+
+/* SEGUIMIENTO */
+.seg-kpi-row { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--border); }
+.seg-kpi-name { flex: 1; font-size: 12px; }
+
+footer { text-align: center; font-size: 11px; color: var(--text2); padding: 16px; border-top: 1px solid var(--border); }
+  @media print{
+    .sidebar,.btn-row,.wizard-nav,.menu-btn{display:none!important;}
+    .fase{display:block!important;}
+    body{background:#fff;}
+  }
+</style>
+</head>
+<body>
+<div class="wiz-container">
+
+<!-- HEADER -->
+<div class="wiz-header">
+  <div class="wiz-tag">&#9670; PMO Comfamiliar Risaralda</div>
+  <div class="wiz-title">Wizard PMO — Registro de Iniciativas</div>
+  <div class="wiz-subtitle">Formulario guiado para líderes de proceso. Complete los campos paso a paso — el sistema calcula el score de priorización automáticamente.</div>
+</div>
+
+<div class="wiz-steps">
+  <div class="wiz-step active" id="st1">1 — Idea</div>
+  <div class="wiz-step" id="st2">2 — Financiero</div>
+  <div class="wiz-step" id="st3">3 — Resultado</div>
+  <div class="wiz-step" id="st4">4 — Seguimiento</div>
+</div>
+<div class="wiz-progress"><div class="wiz-progress-fill" id="prog_fill" style="width:25%"></div></div>
+
+<div class="wiz-body">
+
+<!-- ══════ FASE 1 ══════ -->
+<div class="phase active" id="phase1">
+  <div class="phase-label">&#9889; Fase 1 — Registro de la idea</div>
+  <div class="phase-title">¿Cuál es tu idea de proyecto?</div>
+  <div class="phase-desc">Cuéntanos en términos simples. No necesitas ser experto en finanzas — el sistema hace los cálculos.</div>
+
+  <div class="section">
+    <div class="section-title">Identificación</div>
+    <div class="field">
+      <label>Nombre del proyecto <span style="color:var(--danger-text)">*</span></label>
+      <div class="field-hint">Sé descriptivo y específico. Máximo 120 caracteres.</div>
+      <input type="text" id="f1_nombre" placeholder="Ej. Bus Turístico Parque Consotá" maxlength="120" oninput="updateCUP()">
+    </div>
+    <div class="field-row">
+      <div>
+        <label>Área responsable <span style="color:var(--danger-text)">*</span></label>
+        <select id="f1_area" onchange="updateCUP();loadLineas();loadKPIs()">
+          <option value="">Selecciona...</option>
+          <option value="TUR">Turismo y Recreación</option>
+          <option value="SAL">Salud</option>
+          <option value="VIV">Vivienda</option>
+          <option value="EDU">Educación</option>
+          <option value="SOC">Servicios Sociales</option>
+          <option value="ADM">Administrativo</option>
+          <option value="AMB">Gestión Ambiental</option>
+          <option value="INF">Infraestructura</option>
+          <option value="TIC">Sistemas y TIC</option>
+          <option value="OTR">Otro</option>
+        </select>
+      </div>
+      <div><!-- espacio reservado, clasificación abajo --></div>
+    </div>
+
+    <!-- NIVEL 1: MACROCLASIFICACIÓN FINANCIERA -->
+    <div class="field">
+      <label>Macroclasificación del proyecto <span style="color:var(--danger-text)">*</span></label>
+      <div class="field-hint">Define la naturaleza financiera del proyecto — esto determina cómo se evalúa y qué fondos aplican.</div>
+      <div class="macro-grid" id="macro_grid">
+        <div class="macro-card" onclick="selMacro('social',this)">
+          <div class="macro-card-title">🤝 Social / Subsidiado</div>
+          <div class="macro-card-sub">No genera ingresos propios. Se financia con recursos de la caja.</div>
+        </div>
+        <div class="macro-card" onclick="selMacro('autosostenible',this)">
+          <div class="macro-card-title">📈 Autosostenible</div>
+          <div class="macro-card-sub">Genera sus propios ingresos. Se evalúa con VPN/TIR.</div>
+        </div>
+        <div class="macro-card" onclick="selMacro('fondos',this)">
+          <div class="macro-card-title">🏦 Fondos de destinación específica</div>
+          <div class="macro-card-sub">Recursos etiquetados: FOVIS, FOSFEC, Foniñez, etc.</div>
+        </div>
+        <div class="macro-card" onclick="selMacro('mixto',this)">
+          <div class="macro-card-title">⚖️ Mixto</div>
+          <div class="macro-card-sub">Combina subsidio institucional con ingresos propios.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FUENTE DE FINANCIACIÓN (aparece para social, fondos y mixto) -->
+    <div class="field collapsible-section" id="sec_fuente">
+      <label>Fuente de financiación <span style="color:var(--danger-text)">*</span></label>
+      <div class="field-hint">Selecciona una o más fuentes que financiarán este proyecto.</div>
+      <div class="fondos-multi" id="fondos_chips">
+        <!-- Fondos de destinación específica -->
+        <div class="fondo-chip" data-tipo="especifica" onclick="toggleFondo(this)">FOVIS Urbano</div>
+        <div class="fondo-chip" data-tipo="especifica" onclick="toggleFondo(this)">FOVIS Rural</div>
+        <div class="fondo-chip" data-tipo="especifica" onclick="toggleFondo(this)">FOSFEC 2%</div>
+        <div class="fondo-chip" data-tipo="especifica" onclick="toggleFondo(this)">FOSFEC Ley 1636 — 6.25%</div>
+        <div class="fondo-chip" data-tipo="especifica" onclick="toggleFondo(this)">Foniñez</div>
+        <div class="fondo-chip" data-tipo="especifica" onclick="toggleFondo(this)">ATIN 3%</div>
+        <div class="fondo-chip" data-tipo="especifica" onclick="toggleFondo(this)">JEC 3%</div>
+        <div class="fondo-chip" data-tipo="especifica" onclick="toggleFondo(this)">Fosyga / Salud 5%</div>
+        <!-- Recursos libres -->
+        <div class="fondo-chip" data-tipo="libre" onclick="toggleFondo(this)">Excedentes 55%</div>
+        <div class="fondo-chip" data-tipo="libre" onclick="toggleFondo(this)">Saldo obras y programas sociales</div>
+        <div class="fondo-chip" data-tipo="libre" onclick="toggleFondo(this)">Recursos diferentes del 4%</div>
+        <div class="fondo-chip" data-tipo="libre" onclick="toggleFondo(this)">Crédito externo</div>
+        <div class="fondo-chip" data-tipo="libre" onclick="toggleFondo(this)">Administración 8%</div>
+        <div class="fondo-chip" data-tipo="libre" onclick="toggleFondo(this)">Superintendencia 1%</div>
+      </div>
+    </div>
+
+    <!-- NIVEL 2: TIPO SEGÚN RESULTADOS -->
+    <div class="field">
+      <label>Tipo de proyecto — según resultados esperados <span style="color:var(--danger-text)">*</span></label>
+      <div class="field-hint">¿Qué busca lograr principalmente este proyecto para Comfamiliar?</div>
+      <div class="nivel2-grid">
+        <div class="nivel2-card" onclick="selNivel2('ingresos',this)">
+          <div class="nivel2-card-title">💰 Generación de ingresos</div>
+          <div class="nivel2-card-sub">Nuevo negocio, servicio o incremento de tarifas</div>
+        </div>
+        <div class="nivel2-card" onclick="selNivel2('ahorros',this)">
+          <div class="nivel2-card-title">✂️ Generación de ahorros</div>
+          <div class="nivel2-card-sub">Disminución de costos o mejora de productividad</div>
+        </div>
+        <div class="nivel2-card" onclick="selNivel2('impacto_social',this)">
+          <div class="nivel2-card-title">🌱 Impacto social</div>
+          <div class="nivel2-card-sub">Satisface una necesidad social o ambiental</div>
+        </div>
+        <div class="nivel2-card" onclick="selNivel2('coberturas',this)">
+          <div class="nivel2-card-title">📡 Incremento de coberturas</div>
+          <div class="nivel2-card-sub">Amplía participación de la población afiliada</div>
+        </div>
+        <div class="nivel2-card" onclick="selNivel2('eficiencia',this)" style="grid-column:1/-1">
+          <div class="nivel2-card-title">⚙️ Eficiencia administrativa</div>
+          <div class="nivel2-card-sub">Nuevos métodos, políticas o estructuras internas</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- NIVEL 3: TIPO DE INNOVACIÓN (solo si aplica) -->
+    <div class="field">
+      <label>¿Es un proyecto de innovación?</label>
+      <div class="cobertura-toggle" id="innov_toggle" onclick="toggleInnov()">
+        <span class="ct-label">Sí — es un proyecto de innovación</span>
+        <span class="ct-badge">+pts scoring</span>
+      </div>
+    </div>
+    <div class="collapsible-section" id="sec_innov">
+      <div class="field">
+        <label>Tipo de innovación — según enfoque</label>
+        <div class="field-hint">¿Cómo se materializa la innovación en este proyecto?</div>
+        <div class="innov-grid">
+          <div class="innov-card" onclick="selInnov('producto',this)">
+            <div class="innov-card-title">🆕 Producto y/o servicio</div>
+            <div class="innov-card-sub">Bien o servicio nuevo o con alto grado de mejora</div>
+          </div>
+          <div class="innov-card" onclick="selInnov('proceso',this)">
+            <div class="innov-card-title">🔄 Procesos</div>
+            <div class="innov-card-sub">Tecnología o métodos para mayor eficiencia</div>
+          </div>
+          <div class="innov-card" onclick="selInnov('atencion',this)">
+            <div class="innov-card-title">💡 Rutas y modelos de atención</div>
+            <div class="innov-card-sub">Nuevas experiencias y vivencias con el cliente</div>
+          </div>
+          <div class="innov-card" onclick="selInnov('negocio',this)">
+            <div class="innov-card-title">🏢 Modelo de negocio</div>
+            <div class="innov-card-sub">Nueva unidad de negocio o cambio sustancial</div>
+          </div>
+          <div class="innov-card" onclick="selInnov('programas',this)" style="grid-column:1/-1">
+            <div class="innov-card-title">📋 Programas</div>
+            <div class="innov-card-sub">Nuevo programa o cambio significativo en uno existente</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="field">
+      <label>Línea estratégica <span style="color:var(--danger-text)">*</span></label>
+      <select id="f1_linea" onchange="loadMeta()">
+        <option value="">Selecciona primero el área...</option>
+      </select>
+    </div>
+    <div class="field" id="meta_field" style="display:none">
+      <label>Meta de la línea estratégica</label>
+      <input type="text" id="f1_meta" placeholder="Meta específica que este proyecto apunta a alcanzar">
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Descripción</div>
+    <div class="field">
+      <label>¿Qué problema busca resolver? <span style="color:var(--danger-text)">*</span></label>
+      <div class="field-hint">Describe la necesidad o problema institucional. (máx. 200 palabras)</div>
+      <textarea id="f1_problema" oninput="wc(this,'wc1',200)" placeholder="¿Qué pasa hoy que no debería pasar?"></textarea>
+      <div class="wc" id="wc1">0 / 200 palabras</div>
+    </div>
+    <div class="field">
+      <label>¿Qué resultado esperas lograr?</label>
+      <div class="field-hint">¿Cómo se verá el éxito? (máx. 150 palabras)</div>
+      <textarea id="f1_resultado" oninput="wc(this,'wc2',150)" placeholder="¿Qué mejorará para los afiliados o la organización?"></textarea>
+      <div class="wc" id="wc2">0 / 150 palabras</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Impacto esperado</div>
+    <div class="field">
+      <label>¿A cuántos beneficiarios impacta? <span style="color:var(--danger-text)">*</span></label>
+      <div class="field-hint">Número estimado de personas o afiliados beneficiados directamente</div>
+      <input type="number" id="f1_benef" placeholder="Ej. 5000" min="0">
+    </div>
+    <div class="field">
+      <label>KPIs del tablero de mando a impactar</label>
+      <div class="field-hint">Selecciona o agrega los indicadores que este proyecto va a mover</div>
+      <div class="kpi-chips" id="kpi_chips"></div>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <input type="text" id="kpi_input" placeholder="Escribe un KPI personalizado" style="flex:1;font-size:12px">
+        <button class="btn btn-secondary" onclick="addKPI()" style="padding:7px 14px;font-size:12px">+ Agregar</button>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px" id="kpi_selected"></div>
+    </div>
+    <div class="field-row">
+      <div>
+        <label>Cobertura territorial <span style="color:var(--danger-text)">*</span></label>
+        <select id="f1_cobertura">
+          <option value="">Selecciona...</option>
+          <option>Sede principal Pereira</option>
+          <option>Dosquebradas</option>
+          <option>Santa Rosa de Cabal</option>
+          <option>La Virginia</option>
+          <option>Varias sedes</option>
+          <option>Regional completa</option>
+          <option>Nacional</option>
+        </select>
+      </div>
+      <div>
+        <label>¿Genera ingresos directos?</label>
+        <select id="f1_ingresos">
+          <option>No — es un servicio social</option>
+          <option>Sí — genera ingresos propios</option>
+          <option>Parcialmente — subsidio cruzado</option>
+        </select>
+      </div>
+    </div>
+    <div class="field">
+      <label>¿Este proyecto amplía cobertura de un servicio existente?</label>
+      <div class="field-hint">Si amplía cobertura suma puntos adicionales en alineación estratégica.</div>
+      <div class="cobertura-toggle" id="cobertura_toggle" onclick="toggleAmpliaCobertura()">
+        <span class="ct-label">Sí — este proyecto amplía la cobertura de un servicio existente</span>
+        <span class="ct-badge">+5 pts estratégicos</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECCIÓN AMBIENTAL -->
+  <div class="section">
+    <div class="section-title">🌿 Viabilidad ambiental</div>
+
+    <!-- TEXTO EXPLICATIVO -->
+    <div class="info-box" style="margin-bottom:14px">
+      <strong>¿Por qué se evalúa el componente ambiental?</strong><br>
+      Comfamiliar Risaralda incorpora la viabilidad ambiental como criterio de priorización. La evaluación aplica de forma diferenciada:<br><br>
+      🌿 <strong>Requieren evaluación ambiental:</strong> Turismo y Recreación, Infraestructura, Gestión Ambiental, Salud, Vivienda y Educación — proyectos con obras físicas, uso del territorio o impacto sobre ecosistemas.<br><br>
+      ✅ <strong>No requieren evaluación ambiental:</strong> Administrativo, Sistemas y TIC y Servicios Sociales — proyectos de gestión interna sin impacto físico. Los <strong>15 puntos se asignan automáticamente.</strong><br><br>
+      <em>Para cada variable selecciona: <strong>✅ Sí</strong> (cumplido), <strong>🔘 No aplica</strong> al tipo de proyecto (suma puntos igual) o <strong>❌ Pendiente</strong> (requisito sin gestionar — sin puntos).</em>
+    </div>
+
+    <!-- BADGE NO APLICA -->
+    <div id="amb_na_msg" style="display:none;margin-bottom:12px">
+      <div class="amb-na-badge">✅ No aplica componente ambiental — 15 pts asignados automáticamente</div>
+    </div>
+
+    <div id="amb_form">
+
+      <!-- PASO 1: UBICACIÓN -->
+      <div class="amb-section">
+        <div class="amb-title"><span>📍 Paso 1 — Ubicación del proyecto</span></div>
+        <div class="field-hint" style="color:rgba(255,255,255,0.45);margin-bottom:10px">Esto determina qué requisitos ambientales aplican. Los proyectos rurales tienen condicionantes adicionales de la CARDER.</div>
+        <div class="amb-grid">
+          <div class="amb-card" id="card_suelo_urb" onclick="selSuelo('urbano',this)">
+            <div class="amb-card-title">🏙️ Zona urbana</div>
+            <div class="amb-card-sub">Pereira, Dosquebradas, Santa Rosa de Cabal u otro casco urbano</div>
+          </div>
+          <div class="amb-card" id="card_suelo_rur" onclick="selSuelo('rural',this)">
+            <div class="amb-card-title">🌾 Zona rural o semiurbana</div>
+            <div class="amb-card-sub">Predios rurales, zonas de expansión o suelo suburbano</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PASO 2: REQUISITOS COMUNES -->
+      <div class="amb-section" id="sec_comun" style="display:none">
+        <div class="amb-title">
+          <span>📋 Paso 2 — Requisitos previos (aplican siempre)</span>
+          <span class="amb-pts">máx. 7 pts</span>
+        </div>
+        <div class="field-hint" style="color:rgba(255,255,255,0.45);margin-bottom:10px">Ningún proyecto debería iniciar diseño definitivo sin tener estos requisitos verificados.</div>
+        <div class="amb-grid" id="grid_comun"></div>
+        <div class="amb-score-preview">
+          <span class="amb-score-label">Puntaje comunes:</span>
+          <div class="amb-score-bar-bg"><div class="amb-score-bar-fg" id="bar_comun" style="width:0%;background:#7ecb9e"></div></div>
+          <span class="amb-score-val" id="val_comun">0 / 6 pts</span>
+        </div>
+      </div>
+
+      <!-- PASO 3A: URBANO -->
+      <div class="amb-section" id="sec_urbano" style="display:none">
+        <div class="amb-title">
+          <span>🏙️ Paso 3 — Requisitos específicos zona urbana</span>
+          <span class="amb-pts">máx. 9 pts</span>
+        </div>
+        <div class="amb-grid" id="grid_urbano"></div>
+        <div class="amb-score-preview">
+          <span class="amb-score-label">Puntaje urbano:</span>
+          <div class="amb-score-bar-bg"><div class="amb-score-bar-fg" id="bar_urbano" style="width:0%;background:#6fa8d8"></div></div>
+          <span class="amb-score-val" id="val_urbano">0 / 9 pts</span>
+        </div>
+      </div>
+
+      <!-- PASO 3B: RURAL -->
+      <div class="amb-section" id="sec_rural" style="display:none">
+        <div class="amb-title">
+          <span>🌾 Paso 3 — Requisitos específicos zona rural</span>
+          <span class="amb-pts">máx. 9 pts</span>
+        </div>
+        <div class="field-hint" style="color:rgba(255,255,255,0.45);margin-bottom:10px">⚠️ Los proyectos rurales requieren concepto previo de la CARDER antes de iniciar diseño definitivo.</div>
+        <div class="amb-grid" id="grid_rural"></div>
+        <div class="amb-score-preview">
+          <span class="amb-score-label">Puntaje rural:</span>
+          <div class="amb-score-bar-bg"><div class="amb-score-bar-fg" id="bar_rural" style="width:0%;background:#c9a84c"></div></div>
+          <span class="amb-score-val" id="val_rural">0 / 9 pts</span>
+        </div>
+      </div>
+
+      <!-- PUNTAJE TOTAL AMBIENTAL -->
+      <div id="amb_total_preview" style="display:none">
+        <div class="amb-score-preview" style="background:rgba(126,203,158,0.08);border-radius:8px;padding:10px 14px;margin-top:4px">
+          <span class="amb-score-label" style="font-weight:600;color:rgba(255,255,255,0.7)">PUNTAJE AMBIENTAL TOTAL:</span>
+          <div class="amb-score-bar-bg"><div class="amb-score-bar-fg" id="amb_bar" style="width:0%"></div></div>
+          <span class="amb-score-val" id="amb_score_val">0 / 15 pts</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- SECCIÓN COMPONENTE SOCIAL -->
+  <div class="section">
+    <div class="section-title">🤝 Componente social del proyecto</div>
+    <div class="info-box" style="margin-bottom:14px">
+      <strong>¿Por qué se evalúa el componente social?</strong><br>
+      Comfamiliar Risaralda, como caja de compensación familiar, tiene una responsabilidad directa con las comunidades donde interviene. Este componente evalúa qué tan preparado está el proyecto para relacionarse con la comunidad, manejar sus impactos sociales y fortalecer la participación ciudadana.<br><br>
+      Aplica a <strong>todos los proyectos</strong>. Para cada programa selecciona: <strong>✅ Sí</strong> (está previsto o en ejecución), <strong>🔘 No aplica</strong> al tipo de proyecto, o <strong>❌ Pendiente</strong> (no se ha gestionado aún).
+    </div>
+    <div class="amb-section">
+      <div class="amb-title">
+        <span>👥 Programas del componente social</span>
+        <span class="amb-pts">evaluación informativa</span>
+      </div>
+      <div class="amb-grid" id="grid_social"></div>
+      <div class="amb-score-preview" style="margin-top:14px;">
+        <span class="amb-score-label">Programas gestionados:</span>
+        <div class="amb-score-bar-bg"><div class="amb-score-bar-fg" id="bar_social" style="width:0%;background:#6FA8D8"></div></div>
+        <span class="amb-score-val" id="val_social">0 / 7 programas</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn btn-primary" onclick="goTo(2)">Continuar a evaluación financiera &#8594;</button>
+  </div>
+</div>
+<div class="phase" id="phase2">
+  <div class="phase-label">&#128200; Fase 2 — Evaluación financiera</div>
+  <div class="phase-title">Información financiera detallada</div>
+  <div class="phase-desc">Completa el escenario Propio con los datos disponibles. El sistema calcula automáticamente los escenarios Mixto y Tercerizado.</div>
+
+  <div class="info-box-dark">&#8505; Completa solo el <strong>escenario Propio</strong> — el sistema calcula automáticamente <strong>Mixto (50/50)</strong> y <strong>Tercerizado (fee 30% utilidad)</strong>.</div>
+
+  <!-- CAPEX DARK -->
+  <div class="section-dark">
+    <div class="section-title">Inversión Inicial — CAPEX (Escenario Propio)</div>
+    <div class="field-row">
+      <div>
+        <label>Rango de Inversión Requerida</label>
+        <select id="f2_capex">
+          <option value="0">$0 (sin inversión)</option>
+          <option value="125">$0 – $250 millones</option>
+          <option value="375">$250M – $500 millones</option>
+          <option value="750">$500M – $1.000 millones</option>
+          <option value="1500">$1.000M – $2.000 millones</option>
+          <option value="3000">$2.000M – $5.000 millones</option>
+          <option value="7500">$5.000M – $10.000 millones</option>
+          <option value="15000">$10.000M – $20.000 millones</option>
+          <option value="25000">Más de $20.000 millones</option>
+        </select>
+      </div>
+      <div>
+        <label>Descripción de la Inversión</label>
+        <input type="text" id="f2_capex_desc" placeholder="Ej. Adquisición bus + adecuación">
+      </div>
+    </div>
+    <div class="toggle-row-dark">
+      <span class="toggle-lbl-dark">¿La inversión es depreciable?</span>
+      <div class="toggle" id="dep_toggle" onclick="toggleDep()"></div>
+    </div>
+    <div id="dep_fields" style="display:none">
+      <div class="field-row">
+        <div><label style="color:rgba(255,255,255,0.85)">Vida útil (años)</label><input type="number" id="dep_years" value="5" min="1" max="50" style="background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);color:#f0f0f0;border-radius:8px;padding:9px 12px;font-size:13px;width:100%"></div>
+        <div><label style="color:rgba(255,255,255,0.85)">Valor residual (%)</label><input type="number" id="dep_res" value="0" min="0" max="100" style="background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);color:#f0f0f0;border-radius:8px;padding:9px 12px;font-size:13px;width:100%"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- OPEX DARK -->
+  <div class="section-dark">
+    <div class="section-title">Costos de Operación — OPEX (Escenario Propio)</div>
+    <div class="field-row">
+      <div>
+        <label>OPEX Fijo Anual (millones COP)</label>
+        <input type="number" id="f2_opex" placeholder="Ej. 424" min="0">
+      </div>
+      <div>
+        <label>Costo Variable por Unidad (COP)</label>
+        <input type="number" id="f2_cvar" placeholder="Ej. 4000" min="0">
+      </div>
+    </div>
+    <div class="field-row">
+      <div>
+        <label>Principales rubros de costo</label>
+        <input type="text" id="f2_rubros" placeholder="Ej. Personal, combustible, mantenimiento">
+      </div>
+      <div>
+        <label>Inflación OPEX anual (%)</label>
+        <input type="number" id="f2_inflacion" value="5" min="0" max="30">
+      </div>
+    </div>
+  </div>
+
+  <!-- INGRESOS DARK -->
+  <div class="section-dark">
+    <div class="section-title">Ingresos Proyectados (Escenario Propio)</div>
+    <div class="field-row">
+      <div>
+        <label>Ingresos Año 1 (millones COP)</label>
+        <input type="number" id="f2_ing" placeholder="Ej. 633" min="0">
+      </div>
+      <div>
+        <label>Crecimiento anual esperado (%)</label>
+        <input type="number" id="f2_crec" value="5" min="0" max="50">
+      </div>
+    </div>
+    <div class="field-row">
+      <div>
+        <label>Precio promedio por unidad/ticket (COP)</label>
+        <input type="number" id="f2_precio" placeholder="Ej. 90000" min="0">
+      </div>
+      <div>
+        <label>Unidades/servicios año 1</label>
+        <input type="number" id="f2_unidades" placeholder="Ej. 6115" min="0">
+      </div>
+    </div>
+  </div>
+
+  <!-- SUPUESTOS DARK -->
+  <div class="section-dark">
+    <div class="section-title">Supuestos Comunes</div>
+    <div class="field-row">
+      <div>
+        <label>Tasa de Descuento / WACC (%)</label>
+        <input type="number" id="f2_wacc" value="12" min="1" max="30">
+      </div>
+      <div>
+        <label>Horizonte de Evaluación (años)</label>
+        <input type="number" id="f2_horizonte" value="5" min="1" max="20">
+      </div>
+    </div>
+    <div class="field-row">
+      <div>
+        <label>% Asignaciones sobre ingresos</label>
+        <input type="number" id="f2_asig" value="10" min="0" max="30">
+      </div>
+      <div>
+        <label>% Distribución sobre ingresos</label>
+        <input type="number" id="f2_dist" value="8" min="0" max="20">
+      </div>
+    </div>
+  </div>
+
+  <!-- RIESGOS -->
+  <div class="section">
+    <div class="section-title">Riesgos y complejidad</div>
+    <div class="field">
+      <label>¿Qué tan difícil será implementar este proyecto? <span style="color:var(--danger-text)">*</span></label>
+      <div class="card-grid">
+        <div class="sel-card" onclick="selCard('comp',this,'1')" data-group="comp"><div class="sel-card-title">Muy fácil</div><div class="sel-card-sub">Tenemos experiencia similar</div></div>
+        <div class="sel-card" onclick="selCard('comp',this,'2')" data-group="comp"><div class="sel-card-title">Manejable</div><div class="sel-card-sub">Algunos retos conocidos</div></div>
+        <div class="sel-card" onclick="selCard('comp',this,'3')" data-group="comp"><div class="sel-card-title">Moderado</div><div class="sel-card-sub">Requiere coordinación extra</div></div>
+        <div class="sel-card" onclick="selCard('comp',this,'4')" data-group="comp"><div class="sel-card-title">Difícil</div><div class="sel-card-sub">Alta complejidad o dependencias</div></div>
+      </div>
+    </div>
+    <div class="field-row">
+      <div>
+        <label>¿Depende de proveedores externos?</label>
+        <select id="f2_proveedores">
+          <option value="1">No — ejecución interna</option>
+          <option value="0.8">Parcialmente — apoyo menor</option>
+          <option value="0.6">Sí — proveedor clave</option>
+          <option value="0.4">Totalmente — depende de terceros</option>
+        </select>
+      </div>
+      <div>
+        <label>¿Requiere cambios regulatorios?</label>
+        <select id="f2_regulatorio">
+          <option value="1">No — normativa vigente</option>
+          <option value="0.8">Mínimos — ajustes menores</option>
+          <option value="0.5">Moderados — trámites requeridos</option>
+          <option value="0.3">Significativos — aprobaciones especiales</option>
+        </select>
+      </div>
+    </div>
+    <div class="field">
+      <label>Líder responsable del proyecto <span style="color:var(--danger-text)">*</span></label>
+      <input type="text" id="f2_lider" placeholder="Nombre completo del líder de proceso responsable">
+    </div>
+    <div class="field">
+      <label>Observaciones adicionales (opcional)</label>
+      <textarea id="f2_obs" style="min-height:60px" placeholder="Dependencias, urgencias, restricciones..."></textarea>
+    </div>
+    <div class="madurez-box">
+      <div class="madurez-title">&#11088; Bonificación por madurez de formulación (+10 pts máx)</div>
+      <div class="madurez-check" onclick="document.getElementById('mc1').checked=!document.getElementById('mc1').checked">
+        <input type="checkbox" id="mc1" onclick="event.stopPropagation()">
+        <label for="mc1">El proyecto cuenta con cotizaciones formales de proveedores</label>
+        <span class="madurez-pts">+5 pts</span>
+      </div>
+      <div class="madurez-check" onclick="document.getElementById('mc2').checked=!document.getElementById('mc2').checked">
+        <input type="checkbox" id="mc2" onclick="event.stopPropagation()">
+        <label for="mc2">Los costos de personal están definidos y documentados</label>
+        <span class="madurez-pts">+5 pts</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn btn-secondary" onclick="goTo(1)">&#8592; Volver</button>
+    <button class="btn btn-gold" onclick="calcular()">Calcular score PMO &#8594;</button>
+  </div>
+</div>
+
+<!-- ══════ FASE 3 ══════ -->
+<div class="phase" id="phase3">
+  <div class="phase-label">&#10003; Fase 3 — Resultado del scoring PMO</div>
+  <div class="phase-title">Resultado de la evaluación</div>
+  <div class="phase-desc">El sistema calculó el score de priorización con base en los 5 criterios del modelo multicriterio PMO.</div>
+
+  <div class="cup-box">
+    <div><div class="cup-label">CUP</div><div class="cup-code" id="cup_res">CCF044-???-2026-001</div></div>
+  </div>
+
+  <div id="sem_box"></div>
+  <div id="alerta_hidrica" style="display:none;margin-bottom:12px;" class="info-box" style="border-left-color:#ef9f27;background:var(--warn-bg);color:var(--warn-text)">
+    ⚠️ <strong>Alerta ambiental:</strong> El proyecto indicó que afecta fuentes hídricas o rondas. Se requiere permiso de ocupación de cauce y concepto previo de la CARDER antes de iniciar. La PMO debe verificar este requisito antes de aprobar.
+  </div>
+
+  <div class="section">
+    <div class="section-title">Score multicriterio PMO — 5 criterios ponderados</div>
+    <div id="score_bars"></div>
+    <div style="display:flex;align-items:baseline;gap:10px;margin-top:12px">
+      <span id="score_total_num" style="font-size:36px;font-weight:700;color:var(--text)">0</span>
+      <span style="font-size:16px;color:var(--text2)">/110</span>
+      <span id="score_label" style="font-size:13px;font-weight:600;padding:4px 12px;border-radius:20px"></span>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Datos del proyecto registrado</div>
+    <div class="data-summary" id="data_summary"></div>
+  </div>
+
+  <!-- COMPARATIVO DARK (v2 style) -->
+  <div class="section">
+    <div class="section-title">Comparativo de Escenarios Financieros</div>
+    <div class="tabla-dark-wrap">
+      <table class="tabla-dark" id="tabla_esc">
+        <thead>
+          <tr>
+            <th>Indicador</th>
+            <th><span class="th-icon">🏛️</span> Propio</th>
+            <th><span class="th-icon">🤝</span> Mixto</th>
+            <th><span class="th-icon">🔄</span> Tercerizado</th>
+          </tr>
+        </thead>
+        <tbody id="tabla_tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- CARDS POR ESCENARIO DARK -->
+  <div class="section">
+    <div class="section-title">Detalle por Escenario</div>
+    <div class="esc-cards" id="esc_cards"></div>
+  </div>
+
+  <!-- CHART EBITDA DARK -->
+  <div class="chart-dark">
+    <div class="chart-title-dark">EBITDA proyectado año a año — los tres escenarios</div>
+    <div class="bar-chart" id="chart_ebitda"></div>
+    <div style="display:flex;gap:14px;margin-top:10px">
+      <span style="font-size:11px;color:rgba(255,255,255,0.5);display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;background:#185FA5;display:inline-block;border-radius:2px"></span> Propio</span>
+      <span style="font-size:11px;color:rgba(255,255,255,0.5);display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;background:#1D9E75;display:inline-block;border-radius:2px"></span> Mixto</span>
+      <span style="font-size:11px;color:rgba(255,255,255,0.5);display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;background:#BA7517;display:inline-block;border-radius:2px"></span> Tercerizado</span>
+    </div>
+  </div>
+
+  <!-- ASIGNACIONES DARK -->
+  <div class="section">
+    <div class="section-title">Asignaciones y Distribución (provisional)</div>
+    <div class="asig-dark"><table id="asig_tabla"></table></div>
+    <div style="font-size:11px;color:var(--text2);margin-top:6px">* Asignaciones 10% + Distribución 8% sobre ingresos. Pendiente tabla oficial GAF por sector.</div>
+  </div>
+
+  <div id="rec_box"></div>
+
+  <div class="btn-row">
+    <button class="btn btn-secondary" onclick="goTo(2)">&#8592; Ajustar datos</button>
+    <button class="btn btn-secondary" onclick="goTo(1)">Registrar otra iniciativa</button>
+    <button class="btn btn-primary" onclick="goTo(4)">Crear ficha de seguimiento &#8594;</button>
+  </div>
+</div>
+
+<!-- ══════ FASE 4 ══════ -->
+<div class="phase" id="phase4">
+  <div class="phase-label">&#128203; Fase 4 — Hoja de seguimiento</div>
+  <div class="phase-title">Ficha de seguimiento y control</div>
+  <div class="phase-desc">Registro del estado del proyecto post-aprobación para monitoreo PMO.</div>
+
+  <div class="cup-box" style="margin-bottom:20px">
+    <div><div class="cup-label">Proyecto en seguimiento</div><div class="cup-code" id="cup_seg">CCF044-???-2026-001</div></div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Estado del proyecto</div>
+    <div class="field-row">
+      <div>
+        <label>Fase actual</label>
+        <select id="s_fase">
+          <option>Gate 0 — Registro</option>
+          <option>Gate 1 — Formulación</option>
+          <option>Gate 2 — Aprobación</option>
+          <option>Gate 3 — Arranque</option>
+          <option>Gate 4 — Ejecución</option>
+          <option>Gate 5 — Cierre</option>
+        </select>
+      </div>
+      <div>
+        <label>% de avance</label>
+        <input type="number" id="s_avance" min="0" max="100" value="0">
+      </div>
+    </div>
+    <div class="field-row">
+      <div>
+        <label>Presupuesto aprobado (M COP)</label>
+        <input type="number" id="s_presupuesto" placeholder="Valor aprobado por Comité">
+      </div>
+      <div>
+        <label>Ejecutado a la fecha (M COP)</label>
+        <input type="number" id="s_ejecutado" value="0">
+      </div>
+    </div>
+    <div class="field">
+      <label>Observaciones / Alertas</label>
+      <textarea id="s_obs" placeholder="Riesgos identificados, desviaciones de cronograma, cambios de alcance..."></textarea>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">KPIs de seguimiento</div>
+    <div id="seg_kpis"></div>
+    <div class="field" style="margin-top:12px">
+      <label>Próximo hito</label>
+      <input type="text" id="s_hito" placeholder="Ej. Presentación al Comité de Inversiones — 15/07/2026">
+    </div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn btn-secondary" onclick="goTo(3)">&#8592; Ver resultados</button>
+    <button class="btn btn-secondary" onclick="guardarBorrador()">💾 Guardar borrador</button>
+    <button class="btn btn-secondary" onclick="cargarBorrador()">📂 Cargar borrador</button>
+    <button class="btn btn-ghost" onclick="exportarPDF()">🖨️ Exportar PDF</button>
+    <button class="btn btn-gold" onclick="enviar()">&#10003; Enviar a PMO</button>
+  </div>
+</div>
+
+</div><!-- /wiz-body -->
+<footer>Wizard PMO v4.0 &nbsp;|&nbsp; Comfamiliar Risaralda &nbsp;|&nbsp; Consultoría Financiera PMO — Gustavo Andrés Ospina Agudelo &nbsp;|&nbsp; 2026</footer>
+</div>
+
+<script>
+const LINEAS={TUR:[{l:"5.1.8 Diversificar e innovar el portafolio de servicios",m:"Incrementar visitantes y posicionar Comfamiliar como destino turístico nacional"},{l:"5.3.5 Alinear infraestructura con ampliación de coberturas",m:"Diseñar nuevas atracciones y mejorar capacidad hotelera"}],SAL:[{l:"5.3.1 Evidenciar compromiso con satisfacción del usuario",m:"Mejorar indicadores de satisfacción y oportunidad en atención"},{l:"5.4.1 Afianzar gestión financiera y sostenibilidad",m:"Reducir tiempos de procesamiento y modernizar sistemas de salud"}],VIV:[{l:"5.1.8 Diversificar portafolio de servicios propulsores",m:"Ampliar cobertura de crédito de vivienda y nuevos proyectos habitacionales"}],EDU:[{l:"5.1.8 Diversificar portafolio de servicios sociales",m:"Ampliar cobertura Liceo Bilingüe y fortalecer JEC y AIPI"}],SOC:[{l:"5.1.14 Facilitar acceso a servicios vía herramientas virtuales",m:"Implementar IA para atención autónoma y aumentar afiliaciones"},{l:"5.3.2 Consolidar modelo de Mercadeo Relacional",m:"Crear programas de fidelización y fortalecer relacionamiento empresarial"}],ADM:[{l:"5.3.4 Afianzar gestión administrativa innovadora y ágil",m:"Implementar herramientas tecnológicas y optimizar procesos"},{l:"5.3.7 Modernización de plataforma tecnológica",m:"Implementar fábrica de software y fortalecer ciberseguridad"},{l:"5.3.8 Consolidar gestión integral del Talento Humano",m:"Establecer Plan Carrera y fortalecer experiencia del empleado"}],AMB:[{l:"5.3.12 Armonizar organización con desarrollo comunitario y ambiental",m:"Conservación biodiversidad, eficiencia energética y modelo Basura Cero"}],INF:[{l:"5.3.5 Alinear infraestructura con ampliación de coberturas",m:"Adaptar infraestructura a demandas poblacionales e implementar energía limpia"}],TIC:[{l:"5.3.7 Plataforma tecnológica integrada y modernizada",m:"Automatizaciones Plan Continuidad, Fábrica Software y Ciberseguridad MSPI"}],OTR:[{l:"5.3.4 Afianzar gestión administrativa",m:"Meta por definir"}]};
+const KPIS={TUR:["Número de visitantes","Ingresos por servicios turísticos","Satisfacción del cliente","Ocupación hotelera"],SAL:["Días de cartera","% Cartera vencida","Satisfacción del paciente","Oportunidad en atención"],ADM:["Cumplimiento Plan Estratégico","CARISMA Estratégico","Ejecución presupuestal"],SOC:["Afiliación independientes y empresas nuevas","Ingresos por ventas","Nivel satisfacción clientes"],AMB:["Consumo agua y energía","Generación per cápita residuos","Huella de Carbono"],INF:["Cumplimiento Plan Estratégico","Avance en obras"],TIC:["Ejecución de proyectos","% Cumplimiento MSPI MinTIC"],EDU:["Cobertura educativa","Satisfacción usuarios"],VIV:["Número créditos otorgados","Ingresos por ventas"],OTR:["Cumplimiento Plan Estratégico"]};
+
+let st={phase:1,comp:0,depOn:false,kpis:[],seq:Math.floor(Math.random()*900)+100,
+  macro:'',nivel2:'',innov:'',innovOn:false,fondos:[],ampliaCobertura:false,
+  ambNA:false, ambSuelo:'',
+  ambComun:{uso_suelo:'',carder_det:'',riesgo:'',fuentes_hidricas:'',inventario_forestal:'',matriz_permisos:'',ocup_cauces:''},
+  ambUrbano:{pma:'',rcd:'',ruido_polvo:'',residuos_peligrosos:'',arboles:'',servicios_publicos:''},
+  ambRural:{areas_protegidas:'',rondas_hidricas:'',captacion_agua:'',vertimientos:'',aprovech_forestal:'',fauna:'',mov_tierras:'',licencia_amb:''},
+  social:{info_participacion:'',pqr:'',capacitacion:'',educ_ambiental:'',afectacion_infra:'',movilidad:'',gestion_comunitaria:''}};
+
+/* ---- ÁREAS SIN COMPONENTE AMBIENTAL ---- */
+const AREAS_SIN_AMB = ['ADM','TIC','SOC'];
+
+function checkAmbNA(){
+  const area = document.getElementById('f1_area').value;
+  const esNA = AREAS_SIN_AMB.includes(area);
+  st.ambNA = esNA;
+  document.getElementById('amb_na_msg').style.display = esNA ? 'block' : 'none';
+  document.getElementById('amb_form').style.display = esNA ? 'none' : 'block';
+  updateAmbScore();
+}
+
+/* ---- DATOS DE TARJETAS AMBIENTALES ---- */
+const AMB_CARDS_COMUN = [
+  {key:'uso_suelo',         titulo:'🗺️ Certificado de uso del suelo',       sub:'Verificación POT municipal — Ley 388 de 1997', pts:1},
+  {key:'carder_det',        titulo:'🏛️ Determinantes ambientales CARDER',    sub:'Revisión de cumplimiento de determinantes CARDER vigentes', pts:1},
+  {key:'riesgo',            titulo:'⚠️ Restricciones por riesgo',            sub:'Consulta de amenazas: inundación, remoción en masa, avenidas torrenciales', pts:1},
+  {key:'fuentes_hidricas',  titulo:'💧 Fuentes hídricas y rondas',           sub:'Identificación de quebradas, ríos, nacimientos y sus retiros', pts:1},
+  {key:'ocup_cauces',       titulo:'🚧 Permiso de ocupación de cauces',       sub:'Aplica cuando el proyecto requiere obra de descarga, soporte o cruce cercano a una fuente hídrica (urbano o rural)', pts:1},
+  {key:'inventario_forestal',titulo:'🌳 Inventario forestal preliminar',     sub:'Identificación de árboles y coberturas vegetales que puedan verse afectados', pts:1},
+  {key:'matriz_permisos',   titulo:'📄 Matriz de permisos ambientales',      sub:'Definición de todos los permisos ambientales que requiere el proyecto', pts:1}
+];
+const AMB_CARDS_URBANO = [
+  {key:'pma',               titulo:'📄 Plan de Manejo Ambiental (PMA)',       sub:'PMA de obra con programas de ruido, polvo y contingencias — Decreto 1076/2015', pts:2},
+  {key:'rcd',               titulo:'♻️ Manejo de RCD',                        sub:'Clasificación y disposición autorizada de residuos de construcción — Resolución 472/2017', pts:2},
+  {key:'ruido_polvo',       titulo:'🔊 Control ruido y polvo',                sub:'Programa de manejo de ruido y material particulado durante la obra', pts:1},
+  {key:'residuos_peligrosos',titulo:'☣️ Residuos peligrosos',                sub:'Gestión de pinturas, solventes, aceites y otros residuos peligrosos con gestor autorizado', pts:1},
+  {key:'arboles',           titulo:'🌳 Árboles y cobertura vegetal',          sub:'Autorización CARDER/municipio para tala, poda o traslado de árboles urbanos', pts:2},
+  {key:'servicios_publicos',titulo:'🚰 Disponibilidad servicios públicos',    sub:'Verificación acueducto, alcantarillado y aseo — STAR si no hay alcantarillado', pts:1}
+];
+const AMB_CARDS_RURAL = [
+  {key:'areas_protegidas',  titulo:'🛡️ Áreas protegidas',                   sub:'Verificar que el predio no esté en reservas, corredores biológicos o SIRAP Eje Cafetero', pts:1},
+  {key:'rondas_hidricas',   titulo:'💧 Rondas hídricas',                     sub:'Respeto de retiros de quebradas, ríos, nacimientos y humedales — Determinantes CARDER', pts:1},
+  {key:'captacion_agua',    titulo:'🚰 Captación de agua',                   sub:'Concesión de aguas para consumo, piscinas o recreación — Decreto 1076/2015', pts:1},
+  {key:'vertimientos',      titulo:'🌊 Vertimientos',                         sub:'Permiso de vertimientos para aguas residuales domésticas o industriales', pts:1},
+  {key:'aprovech_forestal', titulo:'🪵 Aprovechamiento forestal',             sub:'Permiso forestal si se requiere tala de árboles o intervención de bosque', pts:1},
+  {key:'fauna',             titulo:'🦜 Fauna silvestre',                      sub:'Medidas de manejo y rescate de fauna si el proyecto interviene hábitats', pts:1},
+  {key:'mov_tierras',       titulo:'⛏️ Movimiento de tierras',               sub:'Estudios geotécnicos y PMA para estabilidad de taludes y control de erosión', pts:2},
+  {key:'gestion_riesgo',    titulo:'🌀 Gestión del riesgo rural',             sub:'Estudios de riesgo por inundación, avenidas torrenciales y remoción en masa', pts:1}
+];
+
+function renderAmbGrids(){
+  renderAmbGrid('comun',  AMB_CARDS_COMUN,  st.ambComun);
+  renderAmbGrid('urbano', AMB_CARDS_URBANO, st.ambUrbano);
+  renderAmbGrid('rural',  AMB_CARDS_RURAL,  st.ambRural);
+}
+
+function renderAmbGrid(grupo, cards, stateObj){
+  const grid = document.getElementById('grid_'+grupo);
+  if(!grid) return;
+  grid.innerHTML = cards.map(c=>{
+    const estado = stateObj[c.key]||'';
+    const clsSi  = estado==='si'       ? 'amb-estado-btn active-si'       : 'amb-estado-btn';
+    const clsNa  = estado==='no_aplica'? 'amb-estado-btn active-no_aplica': 'amb-estado-btn';
+    const clsP   = estado==='pendiente'? 'amb-estado-btn active-pendiente': 'amb-estado-btn';
+    const ptsLabel = !estado ? 'Sin selección — 0 pts'
+      : estado==='si'       ? `✅ Cumplido — +${c.pts} pts`
+      : estado==='no_aplica'? `🔘 No aplica — +${c.pts} pts`
+      : '❌ Pendiente — 0 pts';
+    return `<div class="amb-card ${estado}" id="card_${grupo}_${c.key}">
+      <div class="amb-card-title">${c.titulo}</div>
+      <div class="amb-card-sub">${c.sub}</div>
+      <div class="amb-card-pts" id="pts_${grupo}_${c.key}">${ptsLabel}</div>
+      <div class="amb-estado-bar">
+        <div class="${clsSi}" id="btn_${grupo}_${c.key}_si" onclick="selAmbN('${grupo}','${c.key}','si',${c.pts})">✅ Sí</div>
+        <div class="${clsNa}" id="btn_${grupo}_${c.key}_na" onclick="selAmbN('${grupo}','${c.key}','no_aplica',${c.pts})">🔘 No aplica</div>
+        <div class="${clsP}"  id="btn_${grupo}_${c.key}_p"  onclick="selAmbN('${grupo}','${c.key}','pendiente',0)">❌ Pendiente</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+const AMB_PTS_COMUN   = {uso_suelo:1, carder_det:1, riesgo:1, fuentes_hidricas:1, ocup_cauces:1, inventario_forestal:1, matriz_permisos:1};
+const AMB_PTS_URBANO  = {pma:2, rcd:2, ruido_polvo:1, residuos_peligrosos:1, arboles:2, servicios_publicos:1};
+const AMB_PTS_RURAL   = {areas_protegidas:1, rondas_hidricas:1, captacion_agua:1, vertimientos:1, aprovech_forestal:1, fauna:1, mov_tierras:2, gestion_riesgo:1};
+
+
+function selSuelo(tipo, card){
+  st.ambSuelo = tipo;
+  document.querySelectorAll('#card_suelo_urb,#card_suelo_rur').forEach(c=>c.classList.remove('si'));
+  card.classList.add('si');
+  document.getElementById('sec_comun').style.display = 'block';
+  document.getElementById('sec_urbano').style.display = tipo==='urbano'?'block':'none';
+  document.getElementById('sec_rural').style.display  = tipo==='rural' ?'block':'none';
+  document.getElementById('amb_total_preview').style.display = 'block';
+  renderAmbGrids();
+  updateAmbScore();
+}
+
+function selAmbN(grupo, key, estado, pts){
+  const stateObj = grupo==='comun'?st.ambComun:grupo==='urbano'?st.ambUrbano:st.ambRural;
+  stateObj[key] = estado;
+  renderAmbGrid(grupo, grupo==='comun'?AMB_CARDS_COMUN:grupo==='urbano'?AMB_CARDS_URBANO:AMB_CARDS_RURAL, stateObj);
+  updateAmbScore();
+}
+
+function calcGroupScore(stateObj, ptsObj){
+  return Object.keys(ptsObj).reduce((acc,k)=>{
+    const e = stateObj[k];
+    return acc + ((e==='si'||e==='no_aplica') ? ptsObj[k] : 0);
+  }, 0);
+}
+
+function calcAmbScore(){
+  if(st.ambNA) return 15;
+  const comunMax = 7, especMax = 8;
+  const comun = Math.min(calcGroupScore(st.ambComun, AMB_PTS_COMUN), comunMax);
+  let espec = 0;
+  if(st.ambSuelo==='urbano') espec = Math.min(calcGroupScore(st.ambUrbano, AMB_PTS_URBANO), especMax);
+  else if(st.ambSuelo==='rural') espec = Math.min(calcGroupScore(st.ambRural, AMB_PTS_RURAL), especMax);
+  return Math.min(comun + espec, 15);
+}
+
+function updateAmbScore(){
+  if(st.ambNA) return;
+  const comunMax = 7, especMax = 8;
+  const comun = Math.min(calcGroupScore(st.ambComun, AMB_PTS_COMUN), comunMax);
+  const espec = st.ambSuelo==='urbano'
+    ? Math.min(calcGroupScore(st.ambUrbano, AMB_PTS_URBANO), especMax)
+    : st.ambSuelo==='rural'
+    ? Math.min(calcGroupScore(st.ambRural, AMB_PTS_RURAL), especMax)
+    : 0;
+  const total = Math.min(comun+espec, 15);
+
+  const setBar = (id, val, max) => { const el=document.getElementById(id); if(el) el.style.width=(val/max*100)+'%'; };
+  const setVal = (id, val, max) => { const el=document.getElementById(id); if(el) el.textContent=val+' / '+max+' pts'; };
+  setBar('bar_comun', comun, comunMax); setVal('val_comun', comun, comunMax);
+  if(st.ambSuelo==='urbano'){ setBar('bar_urbano',espec,especMax); setVal('val_urbano',espec,especMax); }
+  if(st.ambSuelo==='rural') { setBar('bar_rural', espec,especMax); setVal('val_rural', espec,especMax); }
+  setBar('amb_bar', total, 15); setVal('amb_score_val', total, 15);
+}
+
+/* ---- COMPONENTE SOCIAL — 7 PROGRAMAS ---- */
+const SOCIAL_CARDS = [
+  {key:'info_participacion',  titulo:'👥 Información y participación comunitaria',      sub:'Identificación de actores, convocatoria y socialización de objetivos y metas del proyecto con la comunidad'},
+  {key:'pqr',                 titulo:'📬 Atención de PQR y sugerencias',                sub:'Canales, metodología, lugar de atención, formatos y tiempos máximos de respuesta a peticiones, quejas y reclamos'},
+  {key:'capacitacion',        titulo:'🎓 Capacitación al personal vinculado',           sub:'Capacitaciones socioambientales al personal del proyecto: obligaciones, temáticas, periodicidad e indicadores de efectividad'},
+  {key:'educ_ambiental',      titulo:'🌿 Educación ambiental a la comunidad',           sub:'Sensibilización y educación comunitaria sobre el proyecto, su impacto y el relacionamiento esperado'},
+  {key:'afectacion_infra',    titulo:'🏘️ Manejo de afectación a infraestructura',       sub:'Identificación y manejo de afectaciones a infraestructura social, habitacional y servicios públicos con acciones informativas y correctivas'},
+  {key:'movilidad',           titulo:'🚧 Manejo de movilidad y señalización',           sub:'Mecanismos informativos, medidas ante cierres temporales de vías, educación vial y registros documentales requeridos'},
+  {key:'gestion_comunitaria', titulo:'🤲 Fortalecimiento de gestión comunitaria',       sub:'Encuentros y actividades que generen herramientas de participación y fortalecimiento comunitario'}
+];
+
+function renderSocialGrid(){
+  const grid = document.getElementById('grid_social');
+  if(!grid) return;
+  grid.innerHTML = SOCIAL_CARDS.map(c=>{
+    const estado = st.social[c.key]||'';
+    const clsSi  = estado==='si'       ?'amb-estado-btn active-si'       :'amb-estado-btn';
+    const clsNa  = estado==='no_aplica'?'amb-estado-btn active-no_aplica':'amb-estado-btn';
+    const clsP   = estado==='pendiente'?'amb-estado-btn active-pendiente':'amb-estado-btn';
+    const ptsLabel = !estado ? 'Sin selección'
+      : estado==='si'        ? '✅ Previsto o en ejecución'
+      : estado==='no_aplica' ? '🔘 No aplica a este proyecto'
+      : '❌ Pendiente — no gestionado';
+    return `<div class="amb-card ${estado}" id="card_social_${c.key}">
+      <div class="amb-card-title">${c.titulo}</div>
+      <div class="amb-card-sub">${c.sub}</div>
+      <div class="amb-card-pts" id="pts_social_${c.key}">${ptsLabel}</div>
+      <div class="amb-estado-bar">
+        <div class="${clsSi}" id="btn_social_${c.key}_si" onclick="selSocial('${c.key}','si')">✅ Sí</div>
+        <div class="${clsNa}" id="btn_social_${c.key}_na" onclick="selSocial('${c.key}','no_aplica')">🔘 No aplica</div>
+        <div class="${clsP}"  id="btn_social_${c.key}_p"  onclick="selSocial('${c.key}','pendiente')">❌ Pendiente</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function selSocial(key, estado){
+  st.social[key] = estado;
+  renderSocialGrid();
+  updateSocialScore();
+}
+
+function calcSocialScore(){
+  const total = SOCIAL_CARDS.length;
+  const gestionados = SOCIAL_CARDS.filter(c=> st.social[c.key]==='si' || st.social[c.key]==='no_aplica').length;
+  return {gestionados, total};
+}
+
+function updateSocialScore(){
+  const {gestionados, total} = calcSocialScore();
+  const bar = document.getElementById('bar_social');
+  const val = document.getElementById('val_social');
+  if(bar) bar.style.width = (gestionados/total*100)+'%';
+  if(val) val.textContent = gestionados+' / '+total+' programas';
+}
+
+
+
+/* ---- CLASIFICACIÓN CASCADA ---- */
+function selMacro(val, card){
+  st.macro = val;
+  document.querySelectorAll('.macro-card').forEach(c=>c.classList.remove('selected'));
+  card.classList.add('selected');
+  // Mostrar fuente de financiación para social, fondos y mixto
+  const sec = document.getElementById('sec_fuente');
+  if(val==='social'||val==='fondos'||val==='mixto'){
+    sec.classList.add('open');
+    // Si es fondos específicos, highlight esos chips
+    document.querySelectorAll('.fondo-chip').forEach(c=>{
+      if(val==='fondos') c.style.opacity = c.dataset.tipo==='especifica'?'1':'0.45';
+      else c.style.opacity='1';
+    });
+  } else {
+    sec.classList.remove('open');
+  }
+}
+function toggleFondo(chip){
+  chip.classList.toggle('picked');
+  st.fondos = Array.from(document.querySelectorAll('.fondo-chip.picked')).map(c=>c.textContent);
+}
+function selNivel2(val, card){
+  st.nivel2 = val;
+  document.querySelectorAll('.nivel2-card').forEach(c=>c.classList.remove('selected'));
+  card.classList.add('selected');
+}
+function toggleInnov(){
+  st.innovOn = !st.innovOn;
+  const toggle = document.getElementById('innov_toggle');
+  const sec = document.getElementById('sec_innov');
+  toggle.classList.toggle('yes', st.innovOn);
+  sec.classList.toggle('open', st.innovOn);
+  if(!st.innovOn){ st.innov=''; document.querySelectorAll('.innov-card').forEach(c=>c.classList.remove('selected')); }
+}
+function selInnov(val, card){
+  st.innov = val;
+  document.querySelectorAll('.innov-card').forEach(c=>c.classList.remove('selected'));
+  card.classList.add('selected');
+}
+function toggleAmpliaCobertura(){
+  st.ampliaCobertura = !st.ampliaCobertura;
+  document.getElementById('cobertura_toggle').classList.toggle('yes', st.ampliaCobertura);
+}
+
+
+function goTo(p){
+  document.getElementById('phase'+st.phase).classList.remove('active');
+  st.phase=p;
+  document.getElementById('phase'+p).classList.add('active');
+  ['st1','st2','st3','st4'].forEach((id,i)=>{
+    const el=document.getElementById(id);
+    el.className='wiz-step'+(i+1<p?' done':i+1===p?' active':'');
+  });
+  document.getElementById('prog_fill').style.width=(p/4*100)+'%';
+  window.scrollTo({top:0,behavior:'smooth'});
+  if(p===4)buildSeg();
+}
+
+function updateCUP(){
+  const a=document.getElementById('f1_area').value||'???';
+  const c='CCF044-'+a+'-2026-'+String(st.seq).padStart(3,'0');
+  ['cup_res','cup_seg'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=c;});
+}
+
+function loadLineas(){
+  const a=document.getElementById('f1_area').value;
+  const s=document.getElementById('f1_linea');
+  s.innerHTML='<option value="">Selecciona la línea estratégica...</option>';
+  (LINEAS[a]||[]).forEach((item,i)=>{const o=document.createElement('option');o.value=i;o.textContent=item.l;s.appendChild(o);});
+  s.onchange=loadMeta;
+  checkAmbNA(); // detectar si aplica componente ambiental
+}
+
+function loadMeta(){
+  const a=document.getElementById('f1_area').value;
+  const idx=document.getElementById('f1_linea').value;
+  const mf=document.getElementById('meta_field');
+  if(idx!==''&&LINEAS[a]&&LINEAS[a][idx]){mf.style.display='block';document.getElementById('f1_meta').placeholder=LINEAS[a][idx].m;}
+  else{mf.style.display='none';}
+}
+
+function loadKPIs(){
+  const a=document.getElementById('f1_area').value;
+  const wrap=document.getElementById('kpi_chips');
+  wrap.innerHTML='';
+  (KPIS[a]||KPIS['OTR']).forEach(k=>{
+    const ch=document.createElement('div');
+    ch.className='kpi-chip'+(st.kpis.includes(k)?' picked':'');
+    ch.textContent=k;
+    ch.onclick=()=>toggleKPI(k,ch);
+    wrap.appendChild(ch);
+  });
+}
+
+function toggleKPI(k,chip){
+  if(st.kpis.includes(k)){st.kpis=st.kpis.filter(x=>x!==k);chip.classList.remove('picked');}
+  else{st.kpis.push(k);chip.classList.add('picked');}
+  renderKPITags();
+}
+function addKPI(){const v=document.getElementById('kpi_input').value.trim();if(!v||st.kpis.includes(v))return;st.kpis.push(v);document.getElementById('kpi_input').value='';renderKPITags();}
+function removeKPI(k){st.kpis=st.kpis.filter(x=>x!==k);renderKPITags();loadKPIs();}
+function renderKPITags(){
+  const c=document.getElementById('kpi_selected');c.innerHTML='';
+  st.kpis.forEach(k=>{const t=document.createElement('div');t.className='kpi-tag';t.innerHTML=k+' <span class="kpi-remove" onclick="removeKPI(\''+k.replace(/'/g,"\\'")+'\')">\xd7</span>';c.appendChild(t);});
+}
+
+function wc(el,id,max){
+  const w=el.value.trim()===''?0:el.value.trim().split(/\s+/).length;
+  const c=document.getElementById(id);
+  c.textContent=w+' / '+max+' palabras';
+  c.className='wc'+(w>max?' over':w>max*0.85?' warn':'');
+}
+
+function selCard(group,card,val){
+  document.querySelectorAll('.sel-card[data-group="'+group+'"]').forEach(c=>c.classList.remove('selected'));
+  card.classList.add('selected');
+  st[group]=parseFloat(val);
+}
+
+function toggleDep(){
+  st.depOn=!st.depOn;
+  document.getElementById('dep_toggle').className='toggle'+(st.depOn?' on':'');
+  document.getElementById('dep_fields').style.display=st.depOn?'block':'none';
+}
+
+function calcScore(){
+  const ing=parseFloat(document.getElementById('f2_ing').value)||0;
+  const opex=parseFloat(document.getElementById('f2_opex').value)||0;
+  const comp=st.comp||2;
+  const prov=parseFloat(document.getElementById('f2_proveedores').value)||1;
+  const reg=parseFloat(document.getElementById('f2_regulatorio').value)||1;
+  const linea=document.getElementById('f1_linea').value;
+
+  // ALINEACIÓN ESTRATÉGICA (max 30)
+  let alin = linea!=='' ? 10 : 5;
+  if(st.macro==='autosostenible') alin += 8;
+  else if(st.macro==='fondos') alin += 7;
+  else if(st.macro==='mixto') alin += 6;
+  else if(st.macro==='social') alin += 5;
+  if(st.nivel2==='ingresos') alin += 7;
+  else if(st.nivel2==='coberturas') alin += 6;
+  else if(st.nivel2==='impacto_social') alin += 5;
+  else if(st.nivel2==='ahorros') alin += 4;
+  else if(st.nivel2==='eficiencia') alin += 3;
+  if(st.ampliaCobertura) alin += 5;
+  alin = Math.min(alin, 30);
+
+  // IMPACTO SOCIAL (max 20)
+  const benef=parseInt(document.getElementById('f1_benef').value)||0;
+  const impSoc=benef>20000?20:benef>5000?16:benef>1000?12:8;
+
+  // VIABILIDAD FINANCIERA (max 20)
+  const margen=ing>0?(ing-opex)/ing:0;
+  const viaFin=ing===0?8:(margen>0.3?20:margen>0.1?15:margen>0?10:6);
+
+  // VIABILIDAD AMBIENTAL (max 15) — nueva
+  const viaAmb = calcAmbScore();
+
+  // GESTIÓN DE RIESGOS (max 10) — reducido de 15 a 10
+  const riesgoBase = comp<=1?10:comp===2?8:comp===3?6:4;
+  const riesgo = Math.round(riesgoBase * prov);
+
+  // CUMPLIMIENTO REGULATORIO (max 5) — reducido de 15 a 5
+  const cumplReg = Math.round(5 * reg);
+
+  const base = alin + impSoc + viaFin + viaAmb + riesgo + cumplReg;
+
+  // BONIFICACIÓN (max +10 extra sobre 100)
+  const bon=(document.getElementById('mc1').checked?5:0)+(document.getElementById('mc2').checked?5:0)+(st.innovOn&&st.innov?3:0);
+  const bonTotal = Math.min(bon, 10);
+
+  return{alin, impSoc, viaFin, viaAmb, riesgo, cumplReg, base, bon:bonTotal, total:base+bonTotal};
+}
+
+function calcFinanciero(){
+  const capex=parseFloat(document.getElementById('f2_capex').value)||0;
+  const opex=parseFloat(document.getElementById('f2_opex').value)||0;
+  const ing=parseFloat(document.getElementById('f2_ing').value)||0;
+  const crec=(parseFloat(document.getElementById('f2_crec').value)||5)/100;
+  const infl=(parseFloat(document.getElementById('f2_inflacion').value)||5)/100;
+  const wacc=(parseFloat(document.getElementById('f2_wacc').value)||12)/100;
+  const n=parseInt(document.getElementById('f2_horizonte').value)||5;
+  const pctA=(parseFloat(document.getElementById('f2_asig').value)||10)/100;
+  const pctD=(parseFloat(document.getElementById('f2_dist').value)||8)/100;
+  let depAnual=0;
+  if(st.depOn){const y=parseInt(document.getElementById('dep_years').value)||5;const r=(parseFloat(document.getElementById('dep_res').value)||0)/100;depAnual=y>0?capex*(1-r)/y:0;}
+
+  function calcEsc(c,o,i){
+    let vpn=-c;const ebitdas=[];
+    for(let t=1;t<=n;t++){
+      const ingT=i*Math.pow(1+crec,t-1);
+      const opT=o*Math.pow(1+infl,t-1);
+      const ebitda=ingT-opT-(ingT*pctA)-(ingT*pctD);
+      vpn+=ebitda/Math.pow(1+wacc,t);
+      ebitdas.push(ebitda);
+    }
+    let tir=0;
+    try{let lo=-0.99,hi=10;for(let ii=0;ii<120;ii++){const mid=(lo+hi)/2;let npv=-c;ebitdas.forEach((f,t)=>npv+=f/Math.pow(1+mid,t+1));if(Math.abs(npv)<0.1){tir=mid;break;}if(npv>0)lo=mid;else hi=mid;tir=mid;}}catch(e){}
+    const ebitda1=ebitdas[0]||0;
+    const margen=i>0?ebitda1/i:0;
+    const avgE=ebitdas.reduce((a,b)=>a+b,0)/ebitdas.length;
+    const payback=avgE>0?c/avgE:999;
+    return{capex:c,opex1:o,ing1:i,vpn,tir,ebitdas,ebitda1,margen,depAnual,payback};
+  }
+
+  const propio=calcEsc(capex,opex,ing);
+  const mixto=calcEsc(capex*0.5,opex*0.5,ing*0.5);
+  const utilAvg=propio.ebitdas.reduce((a,b)=>a+b,0)/propio.ebitdas.length;
+  const tercerizado=calcEsc(0,0,Math.max(0,utilAvg)*0.3);
+  return{propio,mixto,tercerizado};
+}
+
+function calcular(){
+  updateCUP();
+  const sc=calcScore();
+  const fin=calcFinanciero();
+  st.resultados={sc,fin};
+
+  const nombre=document.getElementById('f1_nombre').value||'Sin nombre';
+  const area=document.getElementById('f1_area').options[document.getElementById('f1_area').selectedIndex]?.text||'—';
+  const linea=document.getElementById('f1_linea').options[document.getElementById('f1_linea').selectedIndex]?.text||'—';
+  const capexLabel=document.getElementById('f2_capex').options[document.getElementById('f2_capex').selectedIndex]?.text||'—';
+  const lider=document.getElementById('f2_lider').value||'—';
+
+  // Semaforo
+  const semCls=sc.total>=75?'verde':sc.total>=55?'amarillo':'rojo';
+  const semIcon=sc.total>=75?'✅':sc.total>=55?'⚠️':'❌';
+  const semTit=sc.total>=75?'Proyecto recomendado para aprobación':sc.total>=55?'Proyecto requiere ajustes':'Proyecto no cumple criterios mínimos';
+  const vpns=[fin.propio.vpn,fin.mixto.vpn,fin.tercerizado.vpn];
+  const bestIdx=vpns.indexOf(Math.max(...vpns));
+  const bestNames=['Propio','Mixto','Tercerizado'];
+  const semDesc=sc.total>=75?'Score '+sc.total+'/110. Escenario financiero más favorable: '+bestNames[bestIdx]+'.':sc.total>=55?'Score '+sc.total+'/110. Por debajo del umbral óptimo. Revisa criterios con menor puntaje antes de presentar al Comité.':'Score '+sc.total+'/110. Score insuficiente (mínimo 60). Se recomienda reformular antes de presentar al Comité.';
+  document.getElementById('sem_box').innerHTML='<div class="semaforo '+semCls+'"><div style="font-size:24px">'+semIcon+'</div><div><div class="sem-title">'+semTit+'</div><div class="sem-desc">'+semDesc+'</div></div></div>';
+
+  // Score bars — nueva ponderación con ambiental
+  const criterios=[
+    {n:'Alineación estratégica (30%)',v:sc.alin,max:30},
+    {n:'Impacto social (20%)',v:sc.impSoc,max:20},
+    {n:'Viabilidad financiera (20%)',v:sc.viaFin,max:20},
+    {n:'Viabilidad ambiental (15%)',v:sc.viaAmb,max:15},
+    {n:'Gestión de riesgos (10%)',v:sc.riesgo,max:10},
+    {n:'Cumplimiento regulatorio (5%)',v:sc.cumplReg,max:5},
+    {n:'Bonificación madurez + innovación',v:sc.bon,max:10}
+  ];
+  document.getElementById('score_bars').innerHTML=criterios.map(c=>'<div class="score-row"><div class="score-name">'+c.n+'</div><div class="score-bar-bg"><div class="score-bar-fill" style="width:'+Math.round(c.v/c.max*100)+'%"></div></div><div class="score-num">'+c.v+'</div></div>').join('');
+  document.getElementById('score_total_num').textContent=sc.total;
+  const slbl=document.getElementById('score_label');
+  if(sc.total>=75){slbl.textContent='▶ Alta prioridad';slbl.style.cssText='font-size:13px;font-weight:600;padding:4px 12px;border-radius:20px;background:var(--success-bg);color:var(--success-text)';}
+  else if(sc.total>=55){slbl.textContent='▶ Media prioridad';slbl.style.cssText='font-size:13px;font-weight:600;padding:4px 12px;border-radius:20px;background:var(--warn-bg);color:var(--warn-text)';}
+  else{slbl.textContent='▶ Baja prioridad';slbl.style.cssText='font-size:13px;font-weight:600;padding:4px 12px;border-radius:20px;background:var(--danger-bg);color:var(--danger-text)';}
+
+  // Data summary
+  const macroLabel = {social:'Social / Subsidiado', autosostenible:'Autosostenible', fondos:'Fondos de destinación específica', mixto:'Mixto'}[st.macro]||'—';
+  const nivel2Label = {ingresos:'Generación de ingresos', ahorros:'Generación de ahorros', impacto_social:'Impacto social', coberturas:'Incremento de coberturas', eficiencia:'Eficiencia administrativa'}[st.nivel2]||'—';
+  const fondosStr = st.fondos.length>0 ? st.fondos.join(', ') : '—';
+  const innovLabel = st.innovOn && st.innov ? ({producto:'Producto/Servicio',proceso:'Procesos',atencion:'Rutas/Atención',negocio:'Modelo de negocio',programas:'Programas'}[st.innov]||'—') : '—';
+  const tipoSuelo = st.ambSuelo==='urbano'?'Urbano':st.ambSuelo==='rural'?'Rural':'Sin definir';
+  const ambLabel = st.ambNA ? '✅ No aplica (15 pts auto)' : calcAmbScore()+'/15 pts — '+tipoSuelo;
+
+  const {gestionados, total: totalSocial} = calcSocialScore();
+  const socialLabel = gestionados+'/'+totalSocial+' programas gestionados';
+
+  document.getElementById('data_summary').innerHTML=
+    '<div class="data-cell"><div class="data-cell-label">Nombre</div><div class="data-cell-val">'+nombre+'</div></div>'+
+    '<div class="data-cell"><div class="data-cell-label">Área / Líder</div><div class="data-cell-val">'+area+' — '+lider+'</div></div>'+
+    '<div class="data-cell"><div class="data-cell-label">Macroclasificación</div><div class="data-cell-val">'+macroLabel+'</div></div>'+
+    '<div class="data-cell"><div class="data-cell-label">Tipo según resultados</div><div class="data-cell-val">'+nivel2Label+'</div></div>'+
+    '<div class="data-cell"><div class="data-cell-label">Fuente de financiación</div><div class="data-cell-val" style="font-size:11px">'+fondosStr+'</div></div>'+
+    '<div class="data-cell"><div class="data-cell-label">Innovación</div><div class="data-cell-val">'+innovLabel+'</div></div>'+
+    '<div class="data-cell"><div class="data-cell-label">Inversión estimada</div><div class="data-cell-val">'+capexLabel+' COP</div></div>'+
+    '<div class="data-cell"><div class="data-cell-label">Amplía cobertura</div><div class="data-cell-val">'+(st.ampliaCobertura?'✅ Sí (+5 pts)':'No')+'</div></div>'+
+    '<div class="data-cell"><div class="data-cell-label">Viabilidad ambiental</div><div class="data-cell-val">'+ambLabel+'</div></div>'+
+    '<div class="data-cell"><div class="data-cell-label">Componente social</div><div class="data-cell-val">'+socialLabel+'</div></div>';
+
+  // Alerta hídrica / cauces si aplica
+  const alertBox = document.getElementById('alerta_hidrica');
+  if(alertBox){
+    const alertaCauces = st.ambComun.ocup_cauces==='si' || (st.ambRural.rondas_hidricas==='si' && st.ambSuelo==='rural');
+    if(alertaCauces && !st.ambNA){
+      alertBox.style.display='block';
+    } else {
+      alertBox.style.display='none';
+    }
+  }
+
+  const fmt=v=>{if(v===0)return '—';if(Math.abs(v)>=1000)return (v>=0?'$':'−$')+Math.abs(v/1000).toFixed(1)+'B';return (v>=0?'$':'−$')+Math.abs(v).toFixed(0)+'M';};
+  const fmtP=v=>(v*100).toFixed(1)+'%';
+
+  // Tabla comparativa dark
+  const rows=[
+    ['CAPEX Inicial',fin.propio.capex,fin.mixto.capex,fin.tercerizado.capex,false],
+    ['Ingresos Año 1',fin.propio.ing1,fin.mixto.ing1,fin.tercerizado.ing1,false],
+    ['OPEX Año 1',fin.propio.opex1,fin.mixto.opex1,fin.tercerizado.opex1,false],
+    ['EBITDA Año 1',fin.propio.ebitda1,fin.mixto.ebitda1,fin.tercerizado.ebitda1,true],
+    ['Margen EBITDA',fin.propio.margen,fin.mixto.margen,fin.tercerizado.margen,'pct'],
+    ['VPN',fin.propio.vpn,fin.mixto.vpn,fin.tercerizado.vpn,true],
+    ['TIR',fin.propio.tir,fin.mixto.tir,fin.tercerizado.tir,'pct'],
+    ['Payback (años)',fin.propio.payback<50?fin.propio.payback:null,fin.mixto.payback<50?fin.mixto.payback:null,fin.tercerizado.payback<50?fin.tercerizado.payback:null,'pay'],
+  ];
+  document.getElementById('tabla_tbody').innerHTML=rows.map(r=>{
+    const vals=[r[1],r[2],r[3]];
+    return '<tr><td class="td-label">'+r[0]+'</td>'+vals.map(v=>{
+      if(v===null||v===undefined)return '<td>N/A</td>';
+      let disp,cls='';
+      if(r[4]==='pct'){disp=fmtP(v);cls=v>0?'td-pos':v<0?'td-neg':'';}
+      else if(r[4]==='pay'){disp=v.toFixed(1)+' años';}
+      else{disp=fmt(v);cls=r[4]&&v>0?'td-pos':r[4]&&v<0?'td-neg':'';}
+      return '<td class="'+cls+'">'+disp+'</td>';
+    }).join('')+'</tr>';
+  }).join('');
+
+  // Cards por escenario
+  const escDef=[{n:'Propio',icon:'🏛️',sub:'Inversión y operación 100% Comfamiliar',d:fin.propio},{n:'Mixto (50/50)',icon:'🤝',sub:'CAPEX, OPEX e ingresos compartidos al 50%',d:fin.mixto},{n:'Tercerizado',icon:'🔄',sub:'Operador externo — fee 30% de utilidad',d:fin.tercerizado}];
+  document.getElementById('esc_cards').innerHTML=escDef.map(e=>'<div class="esc-card"><div class="esc-card-header"><span class="esc-card-icon">'+e.icon+'</span><div><div class="esc-card-title">'+e.n+'</div><div class="esc-card-sub">'+e.sub+'</div></div></div><div class="esc-row"><span class="esc-row-label">CAPEX</span><span class="esc-row-val">'+fmt(e.d.capex)+'</span></div><div class="esc-row"><span class="esc-row-label">EBITDA Año 1</span><span class="esc-row-val '+(e.d.ebitda1>=0?'pos':'neg')+'">'+fmt(e.d.ebitda1)+'</span></div><div class="esc-row"><span class="esc-row-label">VPN</span><span class="esc-row-val '+(e.d.vpn>=0?'pos':'neg')+'">'+fmt(e.d.vpn)+'</span></div><div class="esc-row"><span class="esc-row-label">TIR</span><span class="esc-row-val">'+fmtP(e.d.tir)+'</span></div><div class="esc-row"><span class="esc-row-label">Payback</span><span class="esc-row-val">'+(e.d.payback<50?e.d.payback.toFixed(1)+' años':'N/A')+'</span></div></div>').join('');
+
+  // Chart EBITDA
+  const allE=[...fin.propio.ebitdas,...fin.mixto.ebitdas,...fin.tercerizado.ebitdas];
+  const maxE=Math.max(...allE.map(Math.abs),1);
+  let chartH='';
+  for(let t=0;t<fin.propio.ebitdas.length;t++){
+    const vP=fin.propio.ebitdas[t],vM=fin.mixto.ebitdas[t],vT=fin.tercerizado.ebitdas[t];
+    const hP=Math.max(3,Math.round(Math.abs(vP)/maxE*75));
+    const hM=Math.max(3,Math.round(Math.abs(vM)/maxE*75));
+    const hT=Math.max(3,Math.round(Math.abs(vT)/maxE*75));
+    chartH+='<div class="bar-group"><div class="bar-bars"><div class="bar-el" style="height:'+hP+'px;background:'+(vP>=0?'#185FA5':'#E24B4A')+'"></div><div class="bar-el" style="height:'+hM+'px;background:'+(vM>=0?'#1D9E75':'#E24B4A')+'"></div><div class="bar-el" style="height:'+hT+'px;background:'+(vT>=0?'#BA7517':'#E24B4A')+'"></div></div><div class="bar-lbl">Año '+(t+1)+'</div></div>';
+  }
+  document.getElementById('chart_ebitda').innerHTML=chartH;
+
+  // Asignaciones
+  const pctA=(parseFloat(document.getElementById('f2_asig').value)||10)/100;
+  const pctD=(parseFloat(document.getElementById('f2_dist').value)||8)/100;
+  const escs2=[{n:'Propio',d:fin.propio},{n:'Mixto',d:fin.mixto},{n:'Tercerizado',d:fin.tercerizado}];
+  document.getElementById('asig_tabla').innerHTML='<thead><tr><th>Escenario</th><th style="text-align:right">Ingresos año 1</th><th style="text-align:right">Asignaciones '+Math.round(pctA*100)+'%</th><th style="text-align:right">Distribución '+Math.round(pctD*100)+'%</th><th style="text-align:right">Total obligaciones</th></tr></thead><tbody>'+escs2.map(e=>'<tr><td>'+e.n+'</td><td style="text-align:right">'+fmt(e.d.ing1)+'</td><td style="text-align:right" class="asig-warn">'+fmt(e.d.ing1*pctA)+'</td><td style="text-align:right" class="asig-warn">'+fmt(e.d.ing1*pctD)+'</td><td style="text-align:right;font-weight:600">'+fmt(e.d.ing1*(pctA+pctD))+'</td></tr>').join('')+'</tbody>';
+
+  // Recomendación
+  const recText=sc.total>=75?'La iniciativa está lista para presentarse al Comité de Inversiones. El escenario <strong>'+bestNames[bestIdx]+'</strong> es el más favorable según el VPN calculado.':sc.total>=55?'La iniciativa requiere fortalecimiento antes de presentarse al Comité. La PMO coordinará una sesión de trabajo para revisar los criterios con menor puntaje.':'La iniciativa no cumple los criterios mínimos. Se recomienda reformular el alcance y revisar la viabilidad financiera antes de volver a formular.';
+  document.getElementById('rec_box').innerHTML='<div class="rec-box"><div class="rec-title">Score: '+sc.total+'/110 — '+(sc.total>=75?'Lista para aprobación.':sc.total>=55?'Cerca del umbral mínimo.':'Por debajo del umbral mínimo.')+'</div><div class="rec-desc">'+recText+'</div></div>';
+
+  goTo(3);
+}
+
+function buildSeg(){
+  const wrap=document.getElementById('seg_kpis');wrap.innerHTML='';
+  if(st.kpis.length===0){wrap.innerHTML='<div style="font-size:12px;color:var(--text2)">No se definieron KPIs en la fase de identificación.</div>';return;}
+  st.kpis.forEach(k=>{const r=document.createElement('div');r.className='seg-kpi-row';r.innerHTML='<span class="seg-kpi-name">'+k+'</span><input type="text" placeholder="Valor actual" style="width:110px;font-size:12px;padding:6px 8px"><input type="text" placeholder="Meta" style="width:90px;font-size:12px;padding:6px 8px">';wrap.appendChild(r);});
+}
+
+function enviarViaForm(url, datos){
+  // Estrategia: imagen de 1px con datos en query string (máxima compatibilidad)
+  const json = encodeURIComponent(JSON.stringify(datos));
+  const img = new Image();
+  img.src = url + '?data=' + json;
+  
+  // Fallback: también intentar con fetch sin cors
+  try {
+    fetch(url, {
+      method: 'POST',
+      mode: 'no-cors',
+      body: new URLSearchParams({payload: JSON.stringify(datos)})
+    }).catch(()=>{});
+  } catch(e) {}
+}
+
+function enviar(){
+  const cup = document.getElementById('cup_res').textContent;
+  const nombre = document.getElementById('f1_nombre').value||'Sin nombre';
+  const area = document.getElementById('f1_area').value||'';
+  const lider = document.getElementById('f2_lider').value||'';
+  const sc = st.resultados ? st.resultados.sc : calcScore();
+  const socialResult = calcSocialScore();
+  const gestionados = socialResult.gestionados;
+  const semCls = sc.total>=75?'Verde':sc.total>=55?'Amarillo':'Rojo';
+
+  const campos = {
+    cup, nombre, area, lider,
+    fecha: new Date().toLocaleDateString('es-CO'),
+    score_total: sc.total,
+    semaforo: semCls,
+    alineacion: sc.alin,
+    impacto_social: sc.impSoc,
+    viabilidad_financiera: sc.viaFin,
+    viabilidad_ambiental: sc.viaAmb,
+    gestion_riesgos: sc.riesgo,
+    cumplimiento_regulatorio: sc.cumplReg,
+    bonificacion: sc.bon,
+    macro: st.macro,
+    nivel2: st.nivel2,
+    innov: st.innov||'No',
+    amplia_cobertura: st.ampliaCobertura?'Sí':'No',
+    suelo: st.ambSuelo||'No definido',
+    programas_sociales: gestionados+'/7',
+    fondos: st.fondos.join(', ')||'—',
+    capex_rango: (document.getElementById('f2_capex').options[document.getElementById('f2_capex').selectedIndex]?.text||'—'),
+    benef: document.getElementById('f1_benef').value||0
+  };
+
+  const btn = document.querySelector('[onclick="enviar()"]');
+  if(btn){ btn.textContent='⏳ Enviando...'; btn.disabled=true; }
+
+  enviarViaForm(
+    'https://script.google.com/macros/s/AKfycbymEkEvcURPDPWfF8pKkGQV40aUCUEyXCRVz972sMOe9Ly0bvt_5xh_ZdqsgQZ41acP/exec',
+    {hoja:'Nivel1_Registro', campos}
+  );
+
+  setTimeout(()=>{
+    if(btn){ btn.textContent='✅ Enviado a PMO'; btn.disabled=false; }
+    alert('✅ Proyecto "'+nombre+'" ('+cup+') enviado a la PMO.\n\nRevisa la hoja "Nivel1_Registro" en el Google Sheet SIPro para confirmar que llegó el registro.\n\nEstado: Gate 1 — Formulación.');
+  }, 2000);
+}
+
+function exportarPDF(){
+  // Primero calcular si no se ha calculado
+  if(!st.resultados) calcular();
+  // Ir a la fase de resultado (fase 3)
+  goTo(3);
+  setTimeout(()=>{
+    // Mostrar todas las fases para PDF completo
+    document.querySelectorAll('.fase').forEach(s=>s.style.display='block');
+    window.print();
+    // Restaurar vista normal
+    setTimeout(()=>{
+      document.querySelectorAll('.fase').forEach((s,i)=>s.style.display= i===2?'block':'none');
+    }, 500);
+  }, 400);
+}
+
+/* ============================================================
+   GUARDAR / CARGAR BORRADOR
+   ============================================================ */
+function guardarBorrador(){
+  const cup = document.getElementById('cup_res').textContent;
+  const nombre = document.getElementById('f1_nombre').value||'proyecto';
+  const borrador = {
+    version: 'SIPro-N1-v1',
+    fecha: new Date().toISOString(),
+    cup,
+    campos: {
+      f1_nombre: document.getElementById('f1_nombre').value,
+      f1_area: document.getElementById('f1_area').value,
+      f1_linea: document.getElementById('f1_linea').value,
+      f1_benef: document.getElementById('f1_benef').value,
+      f1_cobertura: document.getElementById('f1_cobertura').value,
+      f1_ingresos: document.getElementById('f1_ingresos').value,
+      f2_lider: document.getElementById('f2_lider').value,
+      f2_capex: document.getElementById('f2_capex').value,
+      f2_ing: document.getElementById('f2_ing').value,
+      f2_opex: document.getElementById('f2_opex').value,
+      f2_proveedores: document.getElementById('f2_proveedores').value,
+      f2_regulatorio: document.getElementById('f2_regulatorio').value,
+    },
+    estado: {
+      macro: st.macro, nivel2: st.nivel2, innov: st.innov, innovOn: st.innovOn,
+      fondos: st.fondos, ampliaCobertura: st.ampliaCobertura,
+      ambNA: st.ambNA, ambSuelo: st.ambSuelo,
+      ambComun: st.ambComun, ambUrbano: st.ambUrbano, ambRural: st.ambRural,
+      social: st.social, comp: st.comp, depOn: st.depOn, seq: st.seq
+    }
+  };
+  const blob = new Blob([JSON.stringify(borrador, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'Borrador_SIPro_N1_'+cup.replace(/[^a-zA-Z0-9]/g,'-')+'.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function cargarBorrador(){
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json';
+  input.onchange = e => {
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try {
+        const b = JSON.parse(ev.target.result);
+        if(!b.version || !b.version.startsWith('SIPro-N1')) throw new Error('Archivo no válido');
+        // Restaurar campos de formulario
+        Object.entries(b.campos||{}).forEach(([id,val])=>{
+          const el = document.getElementById(id);
+          if(el) el.value = val;
+        });
+        // Restaurar estado
+        if(b.estado){
+          Object.assign(st, b.estado);
+          updateCUP();
+          // Re-renderizar componentes dinámicos
+          if(st.macro){
+            document.querySelectorAll('.macro-card').forEach(c=>{
+              c.classList.toggle('selected', c.onclick.toString().includes("'"+st.macro+"'"));
+            });
+          }
+          if(st.ambSuelo){
+            const card = document.getElementById('card_suelo_'+st.ambSuelo);
+            if(card){ card.classList.add('si');
+              document.getElementById('sec_comun').style.display='block';
+              document.getElementById('sec_urbano').style.display=st.ambSuelo==='urbano'?'block':'none';
+              document.getElementById('sec_rural').style.display=st.ambSuelo==='rural'?'block':'none';
+              document.getElementById('amb_total_preview').style.display='block';
+              renderAmbGrids(); updateAmbScore();
+            }
+          }
+          renderSocialGrid();
+          loadLineas(); loadKPIs();
+        }
+        alert('✅ Borrador cargado correctamente.\nProyecto: '+(b.campos.f1_nombre||'Sin nombre')+'\nCUP: '+b.cup);
+      } catch(err){ alert('❌ No se pudo cargar el borrador. Verifica que sea un archivo válido de SIPro Nivel 1.\nDetalle: '+err.message); }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+updateCUP();
+setTimeout(renderSocialGrid, 50);
+</script>
+</body>
+</html>
