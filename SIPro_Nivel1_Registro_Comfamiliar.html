@@ -1625,26 +1625,41 @@ function exportarPDF(){
 function guardarBorrador(){
   const cup = document.getElementById('cup_res').textContent;
   const nombre = document.getElementById('f1_nombre').value||'proyecto';
+
+  // Capturar TODOS los campos del formulario
+  const getVal = (id) => { const el=document.getElementById(id); return el?el.value:''; };
+
   const borrador = {
-    version: 'SIPro-N1-v1',
+    version: 'SIPro-N1-v2',
     fecha: new Date().toISOString(),
     cup,
     campos: {
-      f1_nombre: document.getElementById('f1_nombre').value,
-      f1_area: document.getElementById('f1_area').value,
-      f1_linea: document.getElementById('f1_linea').value,
-      f1_benef: document.getElementById('f1_benef').value,
-      f1_cobertura: document.getElementById('f1_cobertura').value,
-      f1_ingresos: document.getElementById('f1_ingresos').value,
-      f2_lider: document.getElementById('f2_lider').value,
-      f2_capex: document.getElementById('f2_capex').value,
-      f2_ing: document.getElementById('f2_ing').value,
-      f2_opex: document.getElementById('f2_opex').value,
-      f2_proveedores: document.getElementById('f2_proveedores').value,
-      f2_regulatorio: document.getElementById('f2_regulatorio').value,
+      // Fase 1 — Idea
+      f1_nombre:    getVal('f1_nombre'),
+      f1_area:      getVal('f1_area'),
+      f1_linea:     getVal('f1_linea'),
+      f1_problema:  getVal('f1_problema'),
+      f1_resultado: getVal('f1_resultado'),
+      f1_benef:     getVal('f1_benef'),
+      f1_cobertura: getVal('f1_cobertura'),
+      f1_ingresos:  getVal('f1_ingresos'),
+      // Fase 2 — Financiero
+      f2_lider:       getVal('f2_lider'),
+      f2_descripcion: getVal('f2_descripcion'),
+      f2_rubros:      getVal('f2_rubros'),
+      f2_capex:       getVal('f2_capex'),
+      f2_precio:      getVal('f2_precio'),
+      f2_unidades:    getVal('f2_unidades'),
+      f2_ing:         getVal('f2_ing'),
+      f2_opex:        getVal('f2_opex'),
+      f2_proveedores: getVal('f2_proveedores'),
+      f2_regulatorio: getVal('f2_regulatorio'),
+      mc1: document.getElementById('mc1')?document.getElementById('mc1').checked:false,
+      mc2: document.getElementById('mc2')?document.getElementById('mc2').checked:false,
     },
     estado: {
-      macro: st.macro, nivel2: st.nivel2, innov: st.innov, innovOn: st.innovOn,
+      macro: st.macro, nivel2: st.nivel2,
+      innov: st.innov, innovOn: st.innovOn,
       fondos: st.fondos, ampliaCobertura: st.ampliaCobertura,
       ambNA: st.ambNA, ambSuelo: st.ambSuelo,
       ambComun: st.ambComun, ambUrbano: st.ambUrbano, ambRural: st.ambRural,
@@ -1655,7 +1670,7 @@ function guardarBorrador(){
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = 'Borrador_SIPro_N1_'+cup.replace(/[^a-zA-Z0-9]/g,'-')+'.json';
-  a.click();
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
   URL.revokeObjectURL(a.href);
 }
 
@@ -1671,36 +1686,108 @@ function cargarBorrador(){
       try {
         const b = JSON.parse(ev.target.result);
         if(!b.version || !b.version.startsWith('SIPro-N1')) throw new Error('Archivo no válido');
-        // Restaurar campos de formulario
+
+        // 1 — Restaurar campos de texto y selects
         Object.entries(b.campos||{}).forEach(([id,val])=>{
           const el = document.getElementById(id);
-          if(el) el.value = val;
+          if(!el) return;
+          if(el.type==='checkbox') el.checked = val;
+          else el.value = val;
         });
-        // Restaurar estado
-        if(b.estado){
-          Object.assign(st, b.estado);
-          updateCUP();
-          // Re-renderizar componentes dinámicos
-          if(st.macro){
-            document.querySelectorAll('.macro-card').forEach(c=>{
-              c.classList.toggle('selected', c.onclick.toString().includes("'"+st.macro+"'"));
+
+        // 2 — Restaurar estado interno
+        if(b.estado) Object.assign(st, b.estado);
+
+        // 3 — Restaurar CUP
+        updateCUP();
+
+        // 4 — Restaurar líneas estratégicas (depende del área)
+        loadLineas();
+        setTimeout(()=>{
+          const lineaSel = document.getElementById('f1_linea');
+          if(lineaSel && b.campos.f1_linea) lineaSel.value = b.campos.f1_linea;
+          loadMeta();
+          loadKPIs();
+        }, 100);
+
+        // 5 — Restaurar macroclasificación (tarjetas)
+        if(st.macro){
+          document.querySelectorAll('.macro-card').forEach(c=>{
+            const fn = c.getAttribute('onclick')||'';
+            c.classList.toggle('selected', fn.includes("'"+st.macro+"'"));
+          });
+          // Mostrar fuente de financiación si aplica
+          const sec = document.getElementById('sec_fuente');
+          if(sec && (st.macro==='social'||st.macro==='fondos'||st.macro==='mixto')) sec.classList.add('open');
+        }
+
+        // 6 — Restaurar fondos (chips)
+        if(st.fondos && st.fondos.length>0){
+          document.querySelectorAll('.fondo-chip').forEach(c=>{
+            c.classList.toggle('picked', st.fondos.includes(c.textContent.trim()));
+          });
+        }
+
+        // 7 — Restaurar nivel2 (tarjetas)
+        if(st.nivel2){
+          document.querySelectorAll('.nivel2-card').forEach(c=>{
+            const fn = c.getAttribute('onclick')||'';
+            c.classList.toggle('selected', fn.includes("'"+st.nivel2+"'"));
+          });
+        }
+
+        // 8 — Restaurar complejidad (sel-cards del grupo comp)
+        if(st.comp){
+          document.querySelectorAll('[data-group="comp"]').forEach(c=>{
+            c.classList.toggle('selected', c.getAttribute('onclick')?.includes("'"+st.comp+"'"));
+          });
+        }
+
+        // 9 — Restaurar innovación
+        if(st.innovOn){
+          const toggle = document.getElementById('innov_toggle');
+          const sec = document.getElementById('sec_innov');
+          if(toggle) toggle.classList.add('yes');
+          if(sec) sec.classList.add('open');
+          if(st.innov){
+            document.querySelectorAll('.innov-card').forEach(c=>{
+              const fn = c.getAttribute('onclick')||'';
+              c.classList.toggle('selected', fn.includes("'"+st.innov+"'"));
             });
           }
-          if(st.ambSuelo){
-            const card = document.getElementById('card_suelo_'+st.ambSuelo);
-            if(card){ card.classList.add('si');
-              document.getElementById('sec_comun').style.display='block';
-              document.getElementById('sec_urbano').style.display=st.ambSuelo==='urbano'?'block':'none';
-              document.getElementById('sec_rural').style.display=st.ambSuelo==='rural'?'block':'none';
-              document.getElementById('amb_total_preview').style.display='block';
-              renderAmbGrids(); updateAmbScore();
-            }
-          }
-          renderSocialGrid();
-          loadLineas(); loadKPIs();
         }
+
+        // 10 — Restaurar amplía cobertura
+        if(st.ampliaCobertura){
+          const tog = document.getElementById('cobertura_toggle');
+          if(tog) tog.classList.add('yes');
+        }
+
+        // 11 — Restaurar componente ambiental
+        if(st.ambSuelo){
+          const card = document.getElementById('card_suelo_'+st.ambSuelo);
+          if(card){
+            card.classList.add('si');
+            const secComun = document.getElementById('sec_comun');
+            const secUrb = document.getElementById('sec_urbano');
+            const secRur = document.getElementById('sec_rural');
+            const secPrev = document.getElementById('amb_total_preview');
+            if(secComun) secComun.style.display='block';
+            if(secUrb) secUrb.style.display=st.ambSuelo==='urbano'?'block':'none';
+            if(secRur) secRur.style.display=st.ambSuelo==='rural'?'block':'none';
+            if(secPrev) secPrev.style.display='block';
+            renderAmbGrids(); updateAmbScore();
+          }
+        }
+
+        // 12 — Restaurar componente social
+        renderSocialGrid();
+
         alert('✅ Borrador cargado correctamente.\nProyecto: '+(b.campos.f1_nombre||'Sin nombre')+'\nCUP: '+b.cup);
-      } catch(err){ alert('❌ No se pudo cargar el borrador. Verifica que sea un archivo válido de SIPro Nivel 1.\nDetalle: '+err.message); }
+
+      } catch(err){
+        alert('❌ No se pudo cargar el borrador.\nDetalle: '+err.message);
+      }
     };
     reader.readAsText(file);
   };
