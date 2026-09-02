@@ -1192,9 +1192,23 @@ function renderPhase1(){
   <div class="card">
     <h3>Identificación del proyecto</h3>
     <div class="card-sub">Esta información solo aparece como encabezado del documento final.</div>
+
+    <div class="info-box" style="margin-bottom:16px;background:#EEF4FF;border-left:4px solid #1B3A5F;padding:14px 16px;border-radius:8px;">
+      <strong>¿Ya registraste este proyecto en el Nivel 1 (SIPro · Registro)?</strong><br>
+      <span style="font-size:13px;color:#4A5568;">Escribe el CUP y haz clic en "Cargar desde Nivel 1" para traer automáticamente el nombre, área y datos básicos.</span>
+      <div style="display:flex;gap:10px;margin-top:12px;align-items:center;flex-wrap:wrap;">
+        <input type="text" id="cup_buscar" placeholder="Ej. CCF044-TUR-2026-837"
+          style="font-family:'Work Sans',sans-serif;font-size:13px;padding:9px 12px;border:1.5px solid #D7DEE8;border-radius:8px;background:#F4F6F9;width:260px;">
+        <button onclick="cargarDesdeSIPro()" style="background:#1B3A5F;color:#fff;font-family:'Work Sans',sans-serif;font-weight:600;font-size:13px;padding:9px 18px;border:none;border-radius:8px;cursor:pointer;">
+          🔗 Cargar desde Nivel 1
+        </button>
+        <span id="sipro_status" style="font-size:12px;color:#8A95A6;"></span>
+      </div>
+    </div>
+
     <div class="field-grid">
       ${fieldText({label:"Nombre del proyecto", path:"proyecto.nombre", help:"Ej. Centro de Imágenes Diagnósticas Pereira"})}
-      ${fieldText({label:"Código / ID en el PMO", path:"proyecto.codigo", help:"Si tu proyecto ya tiene un código asignado por la PMO, escríbelo aquí."})}
+      ${fieldText({label:"Código / CUP del PMO", path:"proyecto.codigo", help:"Si tu proyecto ya tiene un código asignado por la PMO, escríbelo aquí."})}
       ${fieldText({label:"Responsable técnico", path:"proyecto.responsable", help:"Persona encargada de validar la información del proyecto."})}
       ${fieldText({label:"Tipo de servicio / unidad de negocio", path:"proyecto.tipoServicio", help:"Ej. salud, recreación, turismo, educación, vivienda."})}
       ${fieldText({label:"Horizonte de evaluación", path:"proyecto.horizonte", options:["5","10"], help:"El detalle año a año se calcula a 5 años. Si eliges 10, considera extender la proyección manualmente en el Excel para los años 6–10."})}
@@ -1701,6 +1715,36 @@ function enviarViaForm(url, datos){
       body: new URLSearchParams({payload: JSON.stringify(datos)})
     }).catch(()=>{});
   } catch(e) {}
+}
+
+function cargarDesdeSIPro(){
+  const cup = document.getElementById('cup_buscar').value.trim();
+  const status = document.getElementById('sipro_status');
+  if(!cup){ status.textContent = '⚠️ Escribe el CUP primero.'; return; }
+  status.textContent = '⏳ Buscando...';
+  const url = 'https://script.google.com/macros/s/AKfycby3E_WfypT_uSaaZ_xTB7ZjKFFlD_cn576OhBTCzDG0YCwRqViGtOFxl9xqsuy8ak1-/exec?hoja=Nivel1_Registro&cup='+encodeURIComponent(cup);
+  fetch(url)
+    .then(r=>r.json())
+    .then(data=>{
+      if(!data.ok){ status.textContent = '❌ CUP no encontrado en el sistema.'; return; }
+      const d = data.datos;
+      // Cargar datos al state
+      state.proyecto.codigo   = d.cup || cup;
+      state.proyecto.nombre   = d.nombre || '';
+      state.proyecto.responsable = d.lider || '';
+      state.proyecto.tipoServicio = d.area || '';
+      // Re-renderizar fase 1 con los datos cargados
+      goPhase(1);
+      status.textContent = '';
+      setTimeout(()=>{
+        document.getElementById('cup_buscar').value = cup;
+        alert('✅ Proyecto cargado desde SIPro · Registro\n\nNombre: '+d.nombre+'\nCUP: '+d.cup+'\nÁrea: '+d.area+'\nSemáforo: '+d.semaforo+'\n\nRevisa y completa los datos de la Fase 1 antes de continuar.');
+      }, 200);
+    })
+    .catch(err=>{
+      status.textContent = '❌ Error de conexión. Verifica tu internet.';
+      console.error(err);
+    });
 }
 
 function exportarPDFCompleto(){
