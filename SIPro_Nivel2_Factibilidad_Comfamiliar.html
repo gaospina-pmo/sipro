@@ -1722,23 +1722,36 @@ function cargarDesdeSIPro(){
   const status = document.getElementById('sipro_status');
   if(!cup){ status.textContent = '⚠️ Escribe el CUP primero.'; return; }
   status.textContent = '⏳ Buscando...';
-  const url = 'https://script.google.com/macros/s/AKfycby3E_WfypT_uSaaZ_xTB7ZjKFFlD_cn576OhBTCzDG0YCwRqViGtOFxl9xqsuy8ak1-/exec?hoja=Nivel1_Registro&cup='+encodeURIComponent(cup);
+
+  const url = 'https://script.google.com/macros/s/AKfycby3E_WfypT_uSaaZ_xTB7ZjKFFlD_cn576OhBTCzDG0YCwRqViGtOFxl9xqsuy8ak1-/exec?hoja=Nivel1_Registro';
+
   fetch(url)
     .then(r=>r.json())
     .then(data=>{
-      if(!data.ok){ status.textContent = '❌ CUP no encontrado en el sistema.'; return; }
-      const d = data.datos;
-      // Cargar datos al state
-      state.proyecto.codigo   = d.cup || cup;
-      state.proyecto.nombre   = d.nombre || '';
-      state.proyecto.responsable = d.lider || '';
-      state.proyecto.tipoServicio = d.area || '';
-      // Re-renderizar fase 1 con los datos cargados
+      if(!data.ok || !data.datos || data.datos.length===0){
+        status.textContent = '❌ No hay proyectos registrados en el sistema.';
+        return;
+      }
+      // Buscar el proyecto por CUP en los datos retornados
+      const proyecto = data.datos.find(p =>
+        (p.cup && p.cup.toString().trim().toLowerCase() === cup.toLowerCase())
+      );
+      if(!proyecto){
+        status.textContent = '❌ CUP no encontrado. Verifica que coincida exactamente con el registrado en Nivel 1.';
+        return;
+      }
+      // Cargar datos al state usando los nombres exactos de columna del Sheet
+      state.proyecto.codigo      = proyecto.cup || cup;
+      state.proyecto.nombre      = proyecto.nombre || '';
+      state.proyecto.responsable = proyecto.lider || '';
+      state.proyecto.tipoServicio = proyecto.area || '';
+
+      // Re-renderizar fase 1
       goPhase(1);
       status.textContent = '';
       setTimeout(()=>{
         document.getElementById('cup_buscar').value = cup;
-        alert('✅ Proyecto cargado desde SIPro · Registro\n\nNombre: '+d.nombre+'\nCUP: '+d.cup+'\nÁrea: '+d.area+'\nSemáforo: '+d.semaforo+'\n\nRevisa y completa los datos de la Fase 1 antes de continuar.');
+        alert('✅ Proyecto cargado desde SIPro · Registro\n\nNombre: '+proyecto.nombre+'\nCUP: '+proyecto.cup+'\nÁrea: '+proyecto.area+'\nScore: '+proyecto.score_total+' — '+proyecto.semaforo+'\n\nRevisa y completa los datos antes de continuar.');
       }, 200);
     })
     .catch(err=>{
