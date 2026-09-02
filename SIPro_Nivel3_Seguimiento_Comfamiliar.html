@@ -562,7 +562,7 @@ function renderB6Shell(){
   <div id="alertasResumen"></div>
 
   <div class="export-bar">
-    <button class="btn btn-dark" onclick="window.print()">📄 Exportar a PDF</button>
+    <button class="btn btn-dark" onclick="exportarPDFCompleto()">📄 Exportar a PDF</button>
     <button class="btn btn-ghost" onclick="goPhase(1)">← Volver a editar</button>
     <button class="btn btn-ghost" onclick="guardarBorrador()">💾 Guardar borrador</button>
     <button class="btn btn-ghost" onclick="cargarBorrador()">📂 Cargar borrador</button>
@@ -756,7 +756,7 @@ function enviarPMO(){
   if(btn){ btn.textContent='⏳ Enviando...'; btn.disabled=true; }
 
   enviarViaForm(
-    'https://script.google.com/macros/s/AKfycbwivfwe7TjjpobXI5wCjg0KRWOnT6mtsJFlYj1aBO5-SX75uDR0-_3vtuUg7Hr6N0E6AQ/exec',
+    'https://script.google.com/macros/s/AKfycby3E_WfypT_uSaaZ_xTB7ZjKFFlD_cn576OhBTCzDG0YCwRqViGtOFxl9xqsuy8ak1-/exec',
     {hoja:'Nivel3_Seguimiento', campos}
   );
 
@@ -780,6 +780,16 @@ function enviarViaForm(url, datos){
       body: new URLSearchParams({payload: JSON.stringify(datos)})
     }).catch(()=>{});
   } catch(e) {}
+}
+
+function exportarPDFCompleto(){
+  const faseActual = currentPhase;
+  // Ir a resultados (fase 6) para calcular y mostrar todo
+  goPhase(6);
+  setTimeout(()=>{
+    window.print();
+    setTimeout(()=>{ goPhase(faseActual); }, 1000);
+  }, 600);
 }
 
 /* ============================================================

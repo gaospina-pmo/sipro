@@ -385,9 +385,10 @@
   }
 
   @media print{
-    .sidebar, .wizard-nav, .export-bar, .topbar .menu-btn{ display:none !important; }
+    .sidebar, .wizard-nav, .export-bar, .topbar, .menu-btn{ display:none !important; }
     .app-shell{ grid-template-columns: 1fr; }
-    .card, .chart-card, .verdict-card, .conclusion-box{ box-shadow:none; border:1px solid #ddd; }
+    .card, .chart-card, .verdict-card, .conclusion-box{ box-shadow:none; border:1px solid #ddd; break-inside:avoid; }
+    #phaseContent{ display:block !important; }
   }
 </style>
 </head>
@@ -1298,7 +1299,7 @@ function renderPhase7Shell(){
   </div>
 
   <div class="export-bar">
-    <button class="btn btn-dark" onclick="window.print()">📄 Exportar a PDF</button>
+    <button class="btn btn-dark" onclick="exportarPDFCompleto()">📄 Exportar a PDF</button>
     <button class="btn btn-ghost" onclick="exportCSV()">📊 Exportar resumen (CSV / Excel)</button>
     <button class="btn btn-ghost" onclick="guardarBorrador()">💾 Guardar borrador</button>
     <button class="btn btn-ghost" onclick="cargarBorrador()">📂 Cargar borrador</button>
@@ -1679,7 +1680,7 @@ function enviarPMO(){
   if(btn){ btn.textContent='⏳ Enviando...'; btn.disabled=true; }
 
   enviarViaForm(
-    'https://script.google.com/macros/s/AKfycbwivfwe7TjjpobXI5wCjg0KRWOnT6mtsJFlYj1aBO5-SX75uDR0-_3vtuUg7Hr6N0E6AQ/exec',
+    'https://script.google.com/macros/s/AKfycby3E_WfypT_uSaaZ_xTB7ZjKFFlD_cn576OhBTCzDG0YCwRqViGtOFxl9xqsuy8ak1-/exec',
     {hoja:'Nivel2_Factibilidad', campos}
   );
 
@@ -1700,6 +1701,19 @@ function enviarViaForm(url, datos){
       body: new URLSearchParams({payload: JSON.stringify(datos)})
     }).catch(()=>{});
   } catch(e) {}
+}
+
+function exportarPDFCompleto(){
+  // Guardar fase actual
+  const faseActual = currentPhase;
+  // Ir a resultados primero para calcular
+  goPhase(7);
+  setTimeout(()=>{
+    // Imprimir solo la fase de resultados (fase 7 es la más completa)
+    window.print();
+    // Restaurar fase anterior
+    setTimeout(()=>{ goPhase(faseActual); }, 1000);
+  }, 600);
 }
 
 /* ============================================================
